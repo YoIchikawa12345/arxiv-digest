@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI論文ダイジェスト — 2026-10-21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+:root {
+  --bg: #0f1623; --bg-card: #1a2234; --bg-section: #1e2a40;
+  --border: rgba(255,255,255,0.07); --fg: #e2e8f0;
+  --fg-muted: #7a90b8; --fg-dim: #4a5b7a;
+  --accent: #f59e0b; --accent-sub: rgba(245,158,11,0.1);
+  --green: #10b981; --green-sub: rgba(16,185,129,0.08);
+  --purple: #8b5cf6; --purple-sub: rgba(139,92,246,0.08);
+  --font-d: 'Source Serif 4', Georgia, serif;
+  --font-b: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-m: 'IBM Plex Mono', monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f7fb; --bg-card: #fff; --bg-section: #f0f4ff;
+    --border: rgba(0,0,0,0.08); --fg: #1a2035;
+    --fg-muted: #556080; --fg-dim: #9aa5bf;
+    --accent: #b45309; --accent-sub: rgba(180,83,9,0.08);
+    --green: #047857; --green-sub: rgba(4,120,87,0.07);
+    --purple: #6d28d9; --purple-sub: rgba(109,40,217,0.07);
+    color-scheme: light;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-b); font-size: 15px; line-height: 1.7;
+  margin: 0; padding: 0;
+}
+a { color: var(--accent); }
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 14px max(16px, 2vw);
+}
+.header-inner {
+  max-width: 860px; margin: 0 auto;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.header-eyebrow {
+  font-family: var(--font-m); font-size: 0.65rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent);
+}
+.header-title {
+  font-family: var(--font-d); font-size: 1.15rem; font-weight: 600; flex: 1;
+}
+.header-meta { font-family: var(--font-m); font-size: 0.72rem; color: var(--fg-muted); }
+.header-link {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--fg-muted);
+  text-decoration: none; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px;
+}
+.header-link:hover { color: var(--accent); border-color: var(--accent); }
+.main { max-width: 860px; margin: 0 auto; padding: 20px max(16px, 2vw) 64px; }
+.section-label-top {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--fg-dim);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+}
+.paper-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+}
+.card-top {
+  display: grid; grid-template-columns: 50px 1fr;
+  gap: 0 14px; padding: 18px 18px 14px;
+}
+.vote-block {
+  display: flex; flex-direction: column; align-items: center; padding-top: 4px; gap: 2px;
+}
+.vote-arrow { font-size: 0.6rem; color: var(--accent); }
+.vote-num {
+  font-family: var(--font-m); font-size: 0.95rem; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.rank { font-family: var(--font-m); font-size: 0.6rem; color: var(--fg-dim); }
+.paper-title {
+  font-family: var(--font-d); font-size: 1rem; font-weight: 600;
+  line-height: 1.4; margin: 0 0 8px; text-wrap: balance;
+}
+.paper-title a { color: var(--fg); text-decoration: none; }
+.paper-title a:hover { color: var(--accent); }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag {
+  font-family: var(--font-m); font-size: 0.63rem; padding: 2px 7px;
+  border-radius: 3px; color: #fff; letter-spacing: 0.03em;
+}
+.card-sections { padding: 0 18px 18px 82px; display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 560px) {
+  .card-top { grid-template-columns: 44px 1fr; }
+  .card-sections { padding: 0 14px 14px; }
+}
+.section-block {
+  background: var(--bg-section); border-radius: 6px;
+  border-left: 3px solid var(--accent); padding: 12px 14px;
+}
+.section-block.points { border-left-color: var(--green); }
+.section-block.terms  { border-left-color: var(--purple); }
+.section-label {
+  font-family: var(--font-m); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-dim); margin-bottom: 8px;
+}
+.section-block p { margin: 0; font-size: 0.9rem; }
+.points-list {
+  margin: 0; padding-left: 1.2em;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.points-list li { font-size: 0.88rem; }
+.terms-grid { display: flex; flex-direction: column; gap: 10px; }
+.term-item { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: baseline; }
+.term-word {
+  font-family: var(--font-m); font-size: 0.78rem; font-weight: 600;
+  color: var(--purple); white-space: nowrap; padding-top: 1px;
+}
+.term-desc { font-size: 0.85rem; color: var(--fg-muted); }
+.card-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-link {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--accent);
+  text-decoration: none; border: 1px solid var(--accent);
+  padding: 5px 12px; border-radius: 4px; opacity: 0.85; transition: opacity 0.15s;
+}
+.btn-link:hover { opacity: 1; }
+.btn-gh { color: var(--fg-muted); border-color: var(--border); }
+.btn-gh:hover { color: var(--fg); border-color: rgba(255,255,255,0.25); }
+.footer {
+  text-align: center; font-family: var(--font-m); font-size: 0.72rem;
+  color: var(--fg-dim); padding: 24px 16px 40px;
+}
+.footer a { color: var(--fg-muted); }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div style="flex:1;min-width:180px">
+      <div class="header-eyebrow">ArXiv Trend Digest</div>
+      <div class="header-title">今日のAI論文ダイジェスト</div>
+    </div>
+    <span class="header-meta">2026-10-21</span>
+    <a class="header-link" href="https://canon-so8.github.io/news-claw/arxiv/2026/10/21/11-59-neta-trend-hf/" target="_blank">NewsClaw ↗</a>
+  </div>
+</header>
+<main class="main">
+  <p class="section-label-top">トップ10論文 — upvote 順 — 概要・ポイント・用語解説付き</p>
+  
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#1</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.22276" target="_blank">MJev-Spatial: System One Spatial Intelligence via Native Attention Matching</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>ロボットが物体を掴むなどの実世界アクションを行うには、ミリ秒単位で距離や位置を判断する空間認識が必要です。従来の画像言語モデルは『右に10cm』のような回答を通常の文章として1文字ずつ生成していたため、出力が単純な座標や数値であっても余計な処理時間がかかっていました。そこで本研究は、既存モデルの内部パラメータ（Attention機構）をそのまま使い、追加学習なしで候補の中から答えを『分類』する仕組みを提案しました。これにより、文章生成の無駄を省き、低遅延かつ高精度な空間判断を実現しています。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>追加パラメータを一切増やさず、既存モデルのQuery/Keyの計算結果をそのまま分類スコアとして再利用</li>
+<li>選択肢問題だけでなく、連続値（距離など）や2D座標も粗い粒度から細かい粒度へと絞り込む分類処理に変換</li>
+<li>トークン生成ループ（デコード処理）が不要になり、1回の計算パスで即座に空間判断が可能</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">System 1（システム1）</span><span class="term-desc">心理学用語で、熟考せずに直感で即座に行う判断のこと。運転中のとっさのハンドル操作のようなものです。</span></div><div class="term-item"><span class="term-word">VLM（Vision-Language Model）</span><span class="term-desc">画像とテキストの両方を理解できるAIモデル。画像を見せて『何が写っている？』と質問すると文章で回答してくれます。</span></div><div class="term-item"><span class="term-word">自己回帰デコード（Autoregressive Decoding）</span><span class="term-desc">文章を1文字（1トークン）ずつ予測しては付け足していく生成方式。長い文章を作れますが、文字数に比例して時間がかかります。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.22276" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#2</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.20951" target="_blank">LEV: Thinking Fast and Deep with Looped Decision Models</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>APIのルーティングや分類処理をAIに任せる際、文章を生成させず選択肢の確率だけを直接出力させると高速ですが、問題の難易度に関わらず常に一定の計算量しか使えない弱点がありました。難しい問題には深く考えさせ、簡単な問題は即答させたいという課題に対し、本論文は『思考用のテキストを吐き出す』のではなく『ニューラルネットワークの層をループして再実行する』モデルLEVを提案しました。これにより、出力形式はシンプルな確率値のまま、思考の深さをリクエストごとに動的に変更できるようになりました。結果として、モデルの重みを増やさずに難問の正解率を大幅に引き上げることに成功しています。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>2.6Bパラメータのモデルにおいて、ループ回数を1回（深さ1）から4回（深さ4）に増やすことで精度が63.2%から76.2%へ13%向上</li>
+<li>簡単な問題は浅いループで打ち切る判定器（ストッパー）を導入し、不要な計算コストを15%削減</li>
+<li>テキスト（CoT: 思考の連鎖）をトークンとして生成しないため、推論時のメモリ消費や通信オーバーヘッドが極小</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">決定モデル（Decision Model）</span><span class="term-desc">文章をだらだら書くのではなく、『Aの確率80%、Bの確率20%』のように選択肢ごとの確率を一発で返すタイプのAIモデル。</span></div><div class="term-item"><span class="term-word">CoT（Chain of Thought）</span><span class="term-desc">AIに『ステップ・バイ・ステップで考えて』と指示して思考過程の文章を出力させる手法。精度は上がりますが、出力トークン数が増えて遅く・高価になります。</span></div><div class="term-item"><span class="term-word">フォワードパス（Forward Pass）</span><span class="term-desc">入力データをモデルの入力層から出力層まで1回流して結果を計算すること。Web開発でいう1回のリクエスト処理に相当します。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.20951" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#3</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.20424" target="_blank">BizBench: Unveiling Hidden Challenges in Deploying Long-Horizon Agents for Real-World Business</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>業務を自動化するAIエージェントの開発では、最終的に目的を達成できたかだけでなく、途中の業務ルールや法規制を守れたかが極めて重要になります。特に決済などの金融領域では、最終的にお金を送金できても、途中で本人確認手順を抜かすと重大な規約違反・損失につながるからです。本研究は、大手決済企業の実務フローをベースに、789件の社内規定と601種類のAPIツールを統合した本格的なベンチマーク『BizBench』を構築しました。これにより、古い規約と新しい規約の矛盾やリソース制約など、泥臭い実ビジネス特有の環境でAIが正しく動けるかを厳密にテストできるようになりました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>実在する決済大手の手順に基づき、789件のナレッジ文書と601件の実行可能なビジネスツールを統合</li>
+<li>規約の矛盾、古い業務手順、リソース制約など、現場で発生する落とし穴を含む50の長期タスクを用意</li>
+<li>『タスク完了』という結果だけでなく、途中で社内ポリシーや制約を違反していないかの中間検証を実施</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">エージェント（Agent）</span><span class="term-desc">自分で考えて外部ツール（APIなど）を呼び出し、複数ステップの作業を自律して完結させるAIプログラム。</span></div><div class="term-item"><span class="term-word">ロングホライズン（Long-Horizon）</span><span class="term-desc">1回のリクエストで終わらず、十数回〜数十回の連続したステップや試行錯誤を要する長期的な処理のこと。</span></div><div class="term-item"><span class="term-word">ベンチマーク（Benchmark）</span><span class="term-desc">システムの性能を客観的に比較・計測するための標準テストセット。Webアプリでいう負荷テストシナリオのようなもの。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.20424" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#4</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.22471" target="_blank">Has GPT-6-Astra Achieved Embodied Intelligence?</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>これまでのロボット制御AIは、アームの操作や二足歩行など、ロボットのハードウェアやタスクごとに専用のAIモデルを個別に学習させるのが常識でした。しかし本研究では、最新の汎用フロンティアモデル『GPT-6-Astra』単体に、少数のデモ動画や指示を与えるだけで、様々なロボットを直接動かせるかを検証しました。卓上での物体操作から人型ロボット、多関節ハンドまで、12種類の代表的なテスト環境で検証したところ、前例のない高い汎用性能を記録しました。一方で、実行コストの高さや、一度物理的に失敗した（物を落とした等）ときの復旧難易度など、本番運用に向けた課題も浮き彫りになっています。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>卓上アーム、人型ロボット、移動型、高器用ハンドを含む12のベンチマークで圧倒的な性能を達成</li>
+<li>専用の追加学習を行わず、プロンプト内で実演例を見せる方式（インコンテキスト学習）とステップ数増加のみで制御</li>
+<li>『物理状態の正確な検証』『不可逆な失敗からのリカバリ』『長時間タスクでの進捗保持』が次なる技術的ボトルネックと判明</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">Embodied Intelligence（身体性AI）</span><span class="term-desc">画面の中のデータだけでなく、物理的な身体（ロボットやセンサー）を持って実世界と相互作用するAI技術。</span></div><div class="term-item"><span class="term-word">In-Context Learning（ICL / 文脈内学習）</span><span class="term-desc">モデル自体の再学習をせず、リクエスト時の入力プロンプトにいくつかのお手本（数例）を含めるだけでAIにやり方を理解させる手法。</span></div><div class="term-item"><span class="term-word">ハーネス（Harness）</span><span class="term-desc">AIモデルを実際のハードウェアや外部システムと接続し、安全に指示を中継・制御するための周辺ラッパープログラム。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.22471" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#5</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.20571" target="_blank">Any Time, Any Space: A World-State-Centric Framework for Agentic Video Generation</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>AIで長編動画を生成する際、前のシーンで右側にあった机が次のカットで消えたり、キャラクターの服装が変わってしまったりする『カット間の一貫性の崩れ』が大きな課題でした。プロンプトや直前の画像を渡すだけでは、一度離れた場所に戻ってきた時の3次元的な位置関係をAIが記憶できないためです。本研究の『ATAS』フレームワークは、脚本を『3D空間の位置・カメラ情報・イベント発生時刻』付きの指示書に分解し、静的な3D背景メモリと動的な出来事メモリに照らし合わせてから動画を生成します。このメモリベースの管理により、4種類の異なる動画生成AIにおいて、カットをまたいでも破綻しない安定した映像生成が可能になりました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>4つの主要な動画生成モデルすべてにおいて、カットをまたぐ一貫性指標の最高スコアを更新</li>
+<li>脚本から『3D位置・カメラ画角・イベント時間』を明示したショット要求を自動コンパイル</li>
+<li>生成したクリップを自動で3D空間にマッピングし、バリデーションチェックを通過したものだけをメモリに書き戻す状態管理機構</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">ステートフル（Stateful）</span><span class="term-desc">過去の状態（メモリ）を保持し、その情報に基づいて次の処理を行う仕組み。セッション管理されたWebサーバのようなもの。</span></div><div class="term-item"><span class="term-word">アピアランス（Appearance）の一貫性</span><span class="term-desc">映像の中で、人物の顔や物体の色・形がシーンが変わっても同じ状態を保ち続けていること。</span></div><div class="term-item"><span class="term-word">レジストレーション（Registration / 位置合わせ）</span><span class="term-desc">2次元の映像から3次元的な位置を逆算し、仮想世界の座標空間の正しい場所にピタッと重ね合わせる技術。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.20571" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#6</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.21046" target="_blank">PremiseCheck: Efficient Fact-Checking of Human and AI Peer Reviews</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>学術論文の査読（ピアレビュー）において、査読コメントが論文の実際の内容と矛盾したり事実誤認を含んでいたりする問題が深刻化しています。これを最先端の巨大LLMで検証しようとすると、毎回論文全文をプロンプトに読み込ませる必要があり、膨大なAPIコストとレスポンス遅延が発生します。本研究の『PremiseCheck』は、まずLLMが査読コメントを『単純な前提命題の箇条書き』に分解し、その命題が論文と合っているかを軽量で安価なテキスト判定モデルで検証する二段階構成を採用しました。この役割分担により、最高峰モデル（GPT-5.5）と同等の判定精度を保ちながら、コストを約1/4、応答時間を半分以下に削減しました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>GPT-5.5と同等のファクトチェック精度を維持しつつ、自然言語処理分野の査読でコストを1/4に削減</li>
+<li>検証時のレイテンシ（処理遅延）を半分以下に高速化</li>
+<li>『文脈を読まないLLMによる命題分解』＋『本文と命題を照合する軽量判定モデル』という疎結合なパイプライン設計</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">ファクトチェック（Fact-Checking）</span><span class="term-desc">書かれている主張やレビューが、参照元の文献（真実）と照らし合わせて本当に正しいかを検証すること。</span></div><div class="term-item"><span class="term-word">レイテンシ（Latency）</span><span class="term-desc">リクエストを送信してからレスポンスが返ってくるまでの遅延時間。ミリ秒や秒で表されます。</span></div><div class="term-item"><span class="term-word">前提命題（Premise）</span><span class="term-desc">複雑な文章を、『Aである』『Bが使われた』のように、個別に真偽を判定できる最小限の事実単位に分解したもの。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.21046" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#7</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.20584" target="_blank">Player-1: Learning to Play from Synthetic Experience</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>PCの画面を見てマウスやキーボードを操作するAIエージェントの開発が進んでいますが、ゲームのように複雑で素早い操作が求められる分野では、学習用の操作ログデータが圧倒的に不足していました。人間がプレイした動画ログを集めるだけでは、ゲーム中の無数の状況変化をカバーしきれません。そこで本研究『Player-1』は、6,044件の高品質な操作ログで初期学習させた後、AI自身が練習できる16種類の独自シミュレータ環境を用意し、そこで自己試行錯誤（合成経験）させて腕を上げさせる仕組みを構築しました。さらに、マウスの相対移動やボタンの長押しなど、ゲーム特有の細かな操作をAIが扱えるようアクション定義を拡張しています。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>厳選された6,044件のゲームプレイ軌跡（操作ログ＋視覚的推論理由）でモデルを教師あり微調整</li>
+<li>操作スキルの学習に特化した16種類の合成2D/3Dゲーム環境（Player-1-Gym）を独自開発</li>
+<li>『マウスの相対座標移動』『キーの長押し』『複合キー入力』など、リッチな入力インターフェースに対応</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">Computer-Use Agent（CUA）</span><span class="term-desc">人間と同じようにディスプレイ画面を見て、マウス操作やキーボード入力を行ってPCを動かすAI。</span></div><div class="term-item"><span class="term-word">合成経験（Synthetic Experience）</span><span class="term-desc">現実の人間データではなく、シミュレータ等の仮想環境の中でAI自身が実際に試行錯誤して生成した学習データのこと。</span></div><div class="term-item"><span class="term-word">アクション空間（Action Space）</span><span class="term-desc">AIが実行可能な操作の全パターンのこと。『クリック』『特定キー押下』などの選択肢一覧を指します。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.20584" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#8</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.22200" target="_blank">OpenGCUA: Toward a Fully Open Stack for Generalist Computer Use</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>PC作業を自動化するAIは、画面をクリックするだけのGUI操作から、必要に応じてPythonスクリプトを書いて裏で一括処理するような高度な仕組みへと進化しています。しかし、商用の最先端システム（GPT-6系など）の内部構造はブラックボックスで、エンジニアがカスタマイズや詳細な研究を行えませんでした。本プロジェクト『OpenGCUA』は、画面認識によるGUI操作とプログラムコード実行をモデル自身が状況に応じて使い分けられる完全オープンソースの実行基盤を提供します。これにより、途中の計算結果を変数に保存して次の操作に渡すなど、エンジニアが慣れ親しんだプログラミングの強みを活かした柔軟なPC自動化が可能になります。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>画面のクリック操作（視覚的）とスクリプト実行（プログラム的）をAI自身が判断して使い分けるアーキテクチャ</li>
+<li>中立的・オープンソースな基盤としてフルスタックをコミュニティに公開し、商用プロプライエタリ製品に対抗</li>
+<li>中間の処理結果をメモリや変数に保持しながら次の操作を決定できる『コード実行環境』を統合</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">フルスタック（Full Stack）</span><span class="term-desc">ユーザーインターフェースからAIの判断ロジック、OS操作、インフラ実行環境まで、システム全体を丸ごとカバーしていること。</span></div><div class="term-item"><span class="term-word">プロプライエタリ（Proprietary）</span><span class="term-desc">ソースコードや内部仕様が非公開で、特定企業が権利を独占している状態（Windowsや商用クラウドAPIなど）。</span></div><div class="term-item"><span class="term-word">GUI（Graphical User Interface）</span><span class="term-desc">ボタンやウィンドウなど、視覚的なグラフィックを通じてマウス等で操作する画面インターフェース。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.22200" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#9</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.23479" target="_blank">HexaShell: A Thin Harness for Exploring the Limits of VLM Agents as Robot Coding Agents</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>画像認識ができるAI（VLM）を使ってロボットを動かす研究が盛んですが、複雑なニューラルネットワークで直接アームの関節角度を制御しようとすると、ブラックボックス化してデバッグが難しくなります。本研究の『HexaShell』は、ロボットの制御を『エンジニアのようにPythonコードを書いて動かす』方式にし、余計な判断ロジックを持たない極めて薄いCLI（コマンドライン）だけをロボットとの通信部に配置しました。実行担当のAIが失敗すると、もう1つの最適化担当AIが失敗ログと画像を読み込んで原因を特定し、自らツール（Python関数＋テストコード）を書いて修正します。人間の操作見本データやモデルの再学習を一切行わず、コードの蓄積だけでロボットが賢くなっていきます。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>追加のモデル学習や人間の操作デモデータが一切不要（完全なコード生成・テスト駆動アプローチ）</li>
+<li>タスクを実行する『実行エージェント』と、エラーログからコードを修正する『最適化エージェント』の2者協調体制</li>
+<li>学習した知識はPythonスクリプトと単体テストとして保存されるため、人間が読めてデバッグが極めて容易</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">薄いハーネス（Thin Harness）</span><span class="term-desc">独自の複雑なビジネスロジックを持たず、AIが出したコマンドをそのままOSやハードに透過的にパススルーする最小限のラッパー。</span></div><div class="term-item"><span class="term-word">三点測量（Triangulation）</span><span class="term-desc">複数のカメラ画像に写った対象の位置から、三角測量の原理を使って物体の正確な3次元座標を計算する手法。</span></div><div class="term-item"><span class="term-word">キャリブレーション（Calibration）</span><span class="term-desc">カメラの歪みや取り付け位置のズレをあらかじめ測定し、座標系のズレを補正しておく設定作業。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.23479" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#10</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.22350" target="_blank">FDE-Gym: The Last Mile of AI Delivery</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>従来のAIベンチマークは、明確に要件が書かれたチケットを解かせるものが多く、実業務の『仕様が曖昧な顧客案件』をこなせるかのテストにはなっていませんでした。実際のシステム導入（FDE: 導入エンジニア業務）では、顧客との対話で隠れた制約を引き出し、本番環境に近い実稼働システム上で動くコードを納品する必要があります。本研究が開発した『FDE-Gym』は、18業界20シナリオからなる95件のエンドツーエンド導入タスクを再現した実戦シミュレータです。AIは架空の顧客担当者とチャットで仕様を確認しながら、顧客システムのメトリクス（成功指標）をどれだけ改善できたかで採点されます。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>18業界・20の顧客シナリオから構成される、業界エキスパート監修の95件の実践的デリバリー課題</li>
+<li>成功評価は『顧客の重要指標を何％改善できたか（0〜1）』で定量採点され、不要な質問連投や待機時間は減点対象</li>
+<li>スクリプトで動く顧客ステークホルダー（担当者）と変更可能なシステム環境がセットになった完全な模擬案件環境</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">FDE（Forward-Deployed Engineer）</span><span class="term-desc">米Palantir社などで有名な職種。顧客先に深く入り込み、曖昧な要求を整理しながら本番システムへの導入を完遂する現場直結型エンジニア。</span></div><div class="term-item"><span class="term-word">エンドツーエンド（End-to-End）</span><span class="term-desc">要件ヒアリングからシステム修正、テスト、本番適用までの全行程を最初から最後まで一気通貫で行うこと。</span></div><div class="term-item"><span class="term-word">ステークホルダー（Stakeholder）</span><span class="term-desc">顧客企業の担当者や上長など、プロジェクトの利害関係者のこと。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.22350" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+</main>
+<footer class="footer">
+  <p>ソース: <a href="https://canon-so8.github.io/news-claw/arxiv/2026/10/21/11-59-neta-trend-hf/" target="_blank">NewsClaw</a> / 生成: Claude (gemini-3.8-flash)</p>
+</footer>
+</body>
+</html>
