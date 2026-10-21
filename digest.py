@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import anthropic
+import google.generativeai as genai
 import requests
 from bs4 import BeautifulSoup
 
@@ -31,7 +31,7 @@ JST = timezone(timedelta(hours=9))
 NEWSCLAW_BASE = "https://canon-so8.github.io/news-claw/arxiv"
 SLUG = "11-59-neta-trend-hf"
 ARXIV_API = "https://export.arxiv.org/api/query"
-MODEL = "claude-sonnet-4-5"
+MODEL = "gemini-2.0-flash"
 
 TAG_COLORS = {
     "AGENT": "#3b82f6", "LLM": "#8b5cf6", "CV": "#10b981",
@@ -158,14 +158,11 @@ def generate_content(papers: list[dict], abstracts: dict[str, str]) -> list[dict
         + "\n\n".join(items)
     )
 
-    client = anthropic.Anthropic()
-    message = client.messages.create(
-        model=MODEL,
-        max_tokens=6000,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    client = genai.GenerativeModel(MODEL)
+    message = client.generate_content(prompt)
 
-    text = message.content[0].text
+    text = message.text
     json_match = re.search(r"\[.*\]", text, re.DOTALL)
     if not json_match:
         return []
@@ -493,8 +490,8 @@ def main() -> None:
     webhook = os.environ.get("SLACK_WEBHOOK_URL")
     if not webhook:
         sys.exit("Error: SLACK_WEBHOOK_URL is not set.")
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        sys.exit("Error: ANTHROPIC_API_KEY is not set.")
+    if not os.environ.get("GEMINI_API_KEY"):
+        sys.exit("Error: GEMINI_API_KEY is not set.")
 
     url, date_str = today_url()
     print(f"Fetching: {url}")

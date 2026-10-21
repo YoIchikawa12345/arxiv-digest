@@ -34,7 +34,7 @@ jobs:
       - name: Generate digest and HTML
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python digest.py
 
       - name: Commit and push generated HTML
