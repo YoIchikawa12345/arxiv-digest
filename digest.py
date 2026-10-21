@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
 import requests
 from bs4 import BeautifulSoup
 
@@ -31,7 +31,7 @@ JST = timezone(timedelta(hours=9))
 NEWSCLAW_BASE = "https://canon-so8.github.io/news-claw/arxiv"
 SLUG = "11-59-neta-trend-hf"
 ARXIV_API = "https://export.arxiv.org/api/query"
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-3.8-flash"
 
 TAG_COLORS = {
     "AGENT": "#3b82f6", "LLM": "#8b5cf6", "CV": "#10b981",
@@ -158,9 +158,8 @@ def generate_content(papers: list[dict], abstracts: dict[str, str]) -> list[dict
         + "\n\n".join(items)
     )
 
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    client = genai.GenerativeModel(MODEL)
-    message = client.generate_content(prompt)
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    message = client.models.generate_content(model=MODEL, contents=prompt)
 
     text = message.text
     json_match = re.search(r"\[.*\]", text, re.DOTALL)
