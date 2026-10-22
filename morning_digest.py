@@ -10,6 +10,7 @@
 
 import os
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from time import mktime
 
@@ -118,8 +119,17 @@ def summarize(client, section: str, items: list[dict]) -> str:
         "何が新しいのか・なぜ重要かを含め、箇条書きで「• 」始めにしてください。\n\n"
         + text
     )
-    resp = client.models.generate_content(model=MODEL, contents=prompt)
-    return resp.text.strip()
+    for attempt in range(4):
+        try:
+            resp = client.models.generate_content(model=MODEL, contents=prompt)
+            return resp.text.strip()
+        except Exception as e:
+            if attempt == 3:
+                print(f"  Warning: summarize failed for '{section}': {e}")
+                return ""
+            wait = 15 * (attempt + 1)
+            print(f"  Gemini busy, retrying in {wait}s... ({attempt + 1}/3)")
+            time.sleep(wait)
 
 
 # ── Slack ─────────────────────────────────────────────────────────────────────
