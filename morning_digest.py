@@ -19,13 +19,10 @@ from time import mktime
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+from google import genai
 
 JST = timezone(timedelta(hours=9))
-GEMINI_MODEL = "gemini-1.5-flash"
-GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/"
-    f"{GEMINI_MODEL}:generateContent"
-)
+GEMINI_MODEL = "gemini-3.8-flash"
 
 RSS_FEEDS = {
     "Google AI Blog":       "https://blog.google/technology/ai/rss/",
@@ -112,27 +109,18 @@ def fetch_rss(name: str, url: str, max_items: int = 3, max_age_hours: int = 48) 
 # ── Summarize ─────────────────────────────────────────────────────────────────
 
 def call_gemini(api_key: str, prompt: str) -> str:
-    """Gemini REST API を直接呼び出す（SDK不使用）。503なら最大3回リトライ。"""
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
-    for attempt in range(4):
+    """google-genai SDK で Gemini を呼び出す。エラー時は最大2回リトライ。"""
+    client = genai.Client(api_key=api_key)
+    for attempt in range(3):
         try:
-            resp = requests.post(
-                GEMINI_URL, json=payload,
-                params={"key": api_key}, timeout=90,
-            )
-            if resp.status_code == 503:
-                wait = 20 * (attempt + 1)
-                print(f"  Gemini 503, retrying in {wait}s... ({attempt + 1}/3)")
-                time.sleep(wait)
-                continue
-            resp.raise_for_status()
-            return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            message = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+            return message.text.strip()
         except Exception as e:
-            if attempt == 3:
+            if attempt == 2:
                 print(f"  Warning: Gemini error: {e}")
                 return ""
-            wait = 20 * (attempt + 1)
-            print(f"  Error, retrying in {wait}s... ({attempt + 1}/3)")
+            wait = 30 * (attempt + 1)
+            print(f"  Error, retrying in {wait}s... ({attempt + 1}/2)")
             time.sleep(wait)
     return ""
 
