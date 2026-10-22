@@ -1,0 +1,28 @@
+name: Morning Tech Digest → Slack
+
+on:
+  schedule:
+    # 毎日 09:00 JST (= 00:00 UTC) に実行
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  morning-digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run morning digest
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python morning_digest.py
