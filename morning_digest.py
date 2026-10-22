@@ -17,10 +17,13 @@ from time import mktime
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from google import genai
 
 JST = timezone(timedelta(hours=9))
-MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    f"{GEMINI_MODEL}:generateContent"
+)
 
 RSS_FEEDS = {
     "Google AI Blog":       "https://blog.google/technology/ai/rss/",
@@ -106,7 +109,34 @@ def fetch_rss(name: str, url: str, max_items: int = 3, max_age_hours: int = 48) 
 
 # ── Summarize ─────────────────────────────────────────────────────────────────
 
-def summarize(client, section: str, items: list[dict]) -> str:
+def call_gemini(api_key: str, prompt: str) -> str:
+    """Gemini REST API を直接呼び出す（SDK不使用）。503なら最大3回リトライ。"""
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    for attempt in range(4):
+        time.sleep(5)  # rate limit 回避
+        try:
+            resp = requests.post(
+                GEMINI_URL, json=payload,
+                params={"key": api_key}, timeout=60,
+            )
+            if resp.status_code == 503:
+                wait = 30 * (attempt + 1)
+                print(f"  Gemini 503, retrying in {wait}s... ({attempt + 1}/3)")
+                time.sleep(wait)
+                continue
+            resp.raise_for_status()
+            return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+        except Exception as e:
+            if attempt == 3:
+                print(f"  Warning: Gemini error: {e}")
+                return ""
+            wait = 30 * (attempt + 1)
+            print(f"  Error, retrying in {wait}s... ({attempt + 1}/3)")
+            time.sleep(wait)
+    return ""
+
+
+def summarize(api_key: str, section: str, items: list[dict]) -> str:
     if not items:
         return ""
     text = "\n".join(
@@ -119,18 +149,7 @@ def summarize(client, section: str, items: list[dict]) -> str:
         "何が新しいのか・なぜ重要かを含め、箇条書きで「• 」始めにしてください。\n\n"
         + text
     )
-    for attempt in range(4):
-        try:
-            time.sleep(5)  # avoid rate limits between calls
-            resp = client.models.generate_content(model=MODEL, contents=prompt)
-            return resp.text.strip()
-        except Exception as e:
-            if attempt == 3:
-                print(f"  Warning: summarize failed for '{section}': {e}")
-                return ""
-            wait = 30 * (attempt + 1)
-            print(f"  Gemini busy, retrying in {wait}s... ({attempt + 1}/3)")
-            time.sleep(wait)
+    return call_gemini(api_key, prompt)
 
 
 # ── Slack ─────────────────────────────────────────────────────────────────────
@@ -182,28 +201,27 @@ def main():
         sys.exit("Error: GEMINI_API_KEY is not set.")
 
     date_str = datetime.now(JST).strftime("%Y年%m月%d日")
-    client = genai.Client(api_key=api_key)
 
     # 1. HuggingFace
     hf = fetch_hf_papers()
-    hf_sum = summarize(client, "HuggingFace Daily Papers", hf)
+    hf_sum = summarize(api_key, "HuggingFace Daily Papers", hf)
     hf_links = [(p["title"][:30], p["url"]) for p in hf[:4]]
 
     # 2. GitHub Trending
     gh = fetch_github_trending()
-    gh_sum = summarize(client, "GitHub Trending Python", gh)
+    gh_sum = summarize(api_key, "GitHub Trending Python", gh)
     gh_links = [(r["name"], r["url"]) for r in gh[:4]]
 
     # 3. AI Blogs (Google / DeepMind / Meta)
     ai_items = []
     for name in ["Google AI Blog", "DeepMind Blog", "Meta AI Blog"]:
         ai_items.extend(fetch_rss(name, RSS_FEEDS[name]))
-    blog_sum = summarize(client, "AI Blog (Google / DeepMind / Meta)", ai_items)
+    blog_sum = summarize(api_key, "AI Blog (Google / DeepMind / Meta)", ai_items)
     blog_links = [(f"[{i['source'].split()[0]}] {i['title'][:25]}", i["url"]) for i in ai_items[:4]]
 
     # 4. Towards Data Science
     tds = fetch_rss("Towards Data Science", RSS_FEEDS["Towards Data Science"])
-    tds_sum = summarize(client, "Towards Data Science", tds)
+    tds_sum = summarize(api_key, "Towards Data Science", tds)
     tds_links = [(i["title"][:30], i["url"]) for i in tds[:4]]
 
     sections = [
