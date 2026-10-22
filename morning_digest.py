@@ -113,14 +113,13 @@ def call_gemini(api_key: str, prompt: str) -> str:
     """Gemini REST API を直接呼び出す（SDK不使用）。503なら最大3回リトライ。"""
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     for attempt in range(4):
-        time.sleep(5)  # rate limit 回避
         try:
             resp = requests.post(
                 GEMINI_URL, json=payload,
-                params={"key": api_key}, timeout=60,
+                params={"key": api_key}, timeout=90,
             )
             if resp.status_code == 503:
-                wait = 30 * (attempt + 1)
+                wait = 20 * (attempt + 1)
                 print(f"  Gemini 503, retrying in {wait}s... ({attempt + 1}/3)")
                 time.sleep(wait)
                 continue
@@ -130,26 +129,64 @@ def call_gemini(api_key: str, prompt: str) -> str:
             if attempt == 3:
                 print(f"  Warning: Gemini error: {e}")
                 return ""
-            wait = 30 * (attempt + 1)
+            wait = 20 * (attempt + 1)
             print(f"  Error, retrying in {wait}s... ({attempt + 1}/3)")
             time.sleep(wait)
     return ""
 
 
-def summarize(api_key: str, section: str, items: list[dict]) -> str:
-    if not items:
-        return ""
-    text = "\n".join(
-        f"- {item.get('title', '')}: {item.get('abstract') or item.get('summary') or item.get('desc', '')}"
-        for item in items
-    )
+def summarize_all(api_key: str, sections: dict[str, list[dict]]) -> dict[str, str]:
+    """全セクションを1回のAPI呼び出しでまとめて要約する。"""
+    parts = []
+    for section, items in sections.items():
+        if not items:
+            continue
+        text = "\n".join(
+            f"- {item.get('title', '')}: {item.get('abstract') or item.get('summary') or item.get('desc', '')}"
+            for item in items
+        )
+        parts.append(f"## {section}\n{text}")
+
+    if not parts:
+        return {k: "" for k in sections}
+
     prompt = (
-        f"以下は「{section}」の最新情報です。\n"
-        "データサイエンティスト向けに、各項目を1〜2文の日本語で簡潔に要約してください。\n"
-        "何が新しいのか・なぜ重要かを含め、箇条書きで「• 」始めにしてください。\n\n"
-        + text
+        "以下の複数カテゴリの最新情報を、データサイエンティスト向けに日本語で要約してください。\n"
+        "各カテゴリごとに、各項目を1〜2文で箇条書き（「• 」始め）にしてください。\n"
+        "何が新しいのか・なぜ重要かを含めてください。\n"
+        "出力形式:\n"
+        "## カテゴリ名\n• 要約1\n• 要約2\n\n"
+        "## 次のカテゴリ名\n• ...\n\n"
+        "---\n\n"
+        + "\n\n".join(parts)
     )
-    return call_gemini(api_key, prompt)
+    print("Calling Gemini API (single request for all sections)...")
+    raw = call_gemini(api_key, prompt)
+
+    result = {k: "" for k in sections}
+    if not raw:
+        return result
+
+    current = None
+    buf: list[str] = []
+    for line in raw.splitlines():
+        if line.startswith("## "):
+            if current and buf:
+                result[current] = "\n".join(buf).strip()
+                buf = []
+            # match section name loosely
+            heading = line[3:].strip()
+            for key in sections:
+                if key.lower() in heading.lower() or heading.lower() in key.lower():
+                    current = key
+                    break
+            else:
+                current = None
+        elif current:
+            buf.append(line)
+    if current and buf:
+        result[current] = "\n".join(buf).strip()
+    return result
 
 
 # ── Slack ─────────────────────────────────────────────────────────────────────
@@ -202,33 +239,34 @@ def main():
 
     date_str = datetime.now(JST).strftime("%Y年%m月%d日")
 
-    # 1. HuggingFace
+    # データ収集
     hf = fetch_hf_papers()
-    hf_sum = summarize(api_key, "HuggingFace Daily Papers", hf)
     hf_links = [(p["title"][:30], p["url"]) for p in hf[:4]]
 
-    # 2. GitHub Trending
     gh = fetch_github_trending()
-    gh_sum = summarize(api_key, "GitHub Trending Python", gh)
     gh_links = [(r["name"], r["url"]) for r in gh[:4]]
 
-    # 3. AI Blogs (Google / DeepMind / Meta)
     ai_items = []
     for name in ["Google AI Blog", "DeepMind Blog", "Meta AI Blog"]:
         ai_items.extend(fetch_rss(name, RSS_FEEDS[name]))
-    blog_sum = summarize(api_key, "AI Blog (Google / DeepMind / Meta)", ai_items)
     blog_links = [(f"[{i['source'].split()[0]}] {i['title'][:25]}", i["url"]) for i in ai_items[:4]]
 
-    # 4. Towards Data Science
     tds = fetch_rss("Towards Data Science", RSS_FEEDS["Towards Data Science"])
-    tds_sum = summarize(api_key, "Towards Data Science", tds)
     tds_links = [(i["title"][:30], i["url"]) for i in tds[:4]]
 
+    # Gemini API を1回だけ呼ぶ
+    sums = summarize_all(api_key, {
+        "HuggingFace Daily Papers":        hf,
+        "GitHub Trending Python":          gh,
+        "AI Blog (Google / DeepMind / Meta)": ai_items,
+        "Towards Data Science":            tds,
+    })
+
     sections = [
-        {"emoji": "📄", "title": "HuggingFace Daily Papers", "summary": hf_sum,   "links": hf_links},
-        {"emoji": "⭐", "title": "GitHub Trending Python",   "summary": gh_sum,   "links": gh_links},
-        {"emoji": "🤖", "title": "AI Blog (Google / DeepMind / Meta)", "summary": blog_sum, "links": blog_links},
-        {"emoji": "📝", "title": "Towards Data Science",     "summary": tds_sum,  "links": tds_links},
+        {"emoji": "📄", "title": "HuggingFace Daily Papers",          "summary": sums["HuggingFace Daily Papers"],        "links": hf_links},
+        {"emoji": "⭐", "title": "GitHub Trending Python",             "summary": sums["GitHub Trending Python"],          "links": gh_links},
+        {"emoji": "🤖", "title": "AI Blog (Google / DeepMind / Meta)", "summary": sums["AI Blog (Google / DeepMind / Meta)"], "links": blog_links},
+        {"emoji": "📝", "title": "Towards Data Science",               "summary": sums["Towards Data Science"],           "links": tds_links},
     ]
 
     blocks = build_blocks(date_str, sections)
