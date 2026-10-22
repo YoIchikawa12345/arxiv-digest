@@ -31,6 +31,12 @@ RSS_FEEDS = {
     "Towards Data Science": "https://medium.com/feed/towards-data-science",
 }
 
+NHK_FEEDS = {
+    "社会":   "https://www.nhk.or.jp/rss/news/cat1.xml",
+    "国際":   "https://www.nhk.or.jp/rss/news/cat6.xml",
+    "経済":   "https://www.nhk.or.jp/rss/news/cat5.xml",
+}
+
 
 # ── Fetch ─────────────────────────────────────────────────────────────────────
 
@@ -144,7 +150,7 @@ def summarize_all(api_key: str, sections: dict[str, list[dict]]) -> dict[str, st
 
     prompt = (
         "以下の複数カテゴリの最新情報を、AIに詳しくないバックエンドエンジニア向けに日本語で解説してください。\n"
-        "各カテゴリごとに、各項目を「• 英語タイトル\\n　解説」の形式で箇条書きにしてください。\n\n"
+        "各カテゴリごとに、各項目を「• タイトル\\n　解説」の形式で箇条書きにしてください。\n\n"
         "解説のガイドライン:\n"
         "- 2〜3文で「どんな問題を・どうやって解決・なぜ重要か（数値があれば）」を書く\n"
         "- 専門用語は使う場合かっこ内で簡単に補足する（例：LLM（大規模言語モデル））\n"
@@ -254,12 +260,19 @@ def main():
     tds = fetch_rss("Towards Data Science", RSS_FEEDS["Towards Data Science"])
     tds_links = [(i["title"][:30], i["url"]) for i in tds[:4]]
 
+    nhk_items = []
+    for cat, url in NHK_FEEDS.items():
+        items = fetch_rss(f"NHK {cat}", url, max_items=2, max_age_hours=24)
+        nhk_items.extend(items)
+    nhk_links = [(i["title"][:30], i["url"]) for i in nhk_items[:4]]
+
     # Gemini API を1回だけ呼ぶ
     sums = summarize_all(api_key, {
         "HuggingFace Daily Papers":        hf,
         "GitHub Trending Python":          gh,
         "AI Blog (Google / DeepMind / Meta)": ai_items,
         "Towards Data Science":            tds,
+        "NHK ニュース（国内・国際・経済）":      nhk_items,
     })
 
     sections = [
@@ -275,6 +288,9 @@ def main():
         {"emoji": "📝", "title": "Towards Data Science",
          "summary": sums["Towards Data Science"] or build_raw_summary(tds),
          "links": tds_links},
+        {"emoji": "📰", "title": "NHK ニュース（国内・国際・経済）",
+         "summary": sums["NHK ニュース（国内・国際・経済）"] or build_raw_summary(nhk_items),
+         "links": nhk_links},
     ]
 
     blocks = build_blocks(date_str, sections)
