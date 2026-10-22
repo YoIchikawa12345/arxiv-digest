@@ -21,7 +21,7 @@ import requests
 from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent"
@@ -185,6 +185,20 @@ def summarize_all(api_key: str, sections: dict[str, list[dict]]) -> dict[str, st
 
 # ── Slack ─────────────────────────────────────────────────────────────────────
 
+def build_raw_summary(items: list[dict]) -> str:
+    """Gemini失敗時のフォールバック: タイトル一覧を箇条書きにする。"""
+    lines = []
+    for item in items[:5]:
+        title = item.get("title", item.get("name", ""))
+        desc = item.get("abstract", item.get("summary", item.get("desc", "")))
+        if desc:
+            desc = (desc[:80] + "…") if len(desc) > 80 else desc
+            lines.append(f"• {title}: {desc}")
+        else:
+            lines.append(f"• {title}")
+    return "\n".join(lines)
+
+
 def build_blocks(date_str: str, sections: list[dict]) -> list[dict]:
     blocks = [
         {
@@ -257,10 +271,18 @@ def main():
     })
 
     sections = [
-        {"emoji": "📄", "title": "HuggingFace Daily Papers",          "summary": sums["HuggingFace Daily Papers"],        "links": hf_links},
-        {"emoji": "⭐", "title": "GitHub Trending Python",             "summary": sums["GitHub Trending Python"],          "links": gh_links},
-        {"emoji": "🤖", "title": "AI Blog (Google / DeepMind / Meta)", "summary": sums["AI Blog (Google / DeepMind / Meta)"], "links": blog_links},
-        {"emoji": "📝", "title": "Towards Data Science",               "summary": sums["Towards Data Science"],           "links": tds_links},
+        {"emoji": "📄", "title": "HuggingFace Daily Papers",
+         "summary": sums["HuggingFace Daily Papers"] or build_raw_summary(hf),
+         "links": hf_links},
+        {"emoji": "⭐", "title": "GitHub Trending Python",
+         "summary": sums["GitHub Trending Python"] or build_raw_summary(gh),
+         "links": gh_links},
+        {"emoji": "🤖", "title": "AI Blog (Google / DeepMind / Meta)",
+         "summary": sums["AI Blog (Google / DeepMind / Meta)"] or build_raw_summary(ai_items),
+         "links": blog_links},
+        {"emoji": "📝", "title": "Towards Data Science",
+         "summary": sums["Towards Data Science"] or build_raw_summary(tds),
+         "links": tds_links},
     ]
 
     blocks = build_blocks(date_str, sections)
