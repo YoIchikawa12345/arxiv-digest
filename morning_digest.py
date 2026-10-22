@@ -8,7 +8,9 @@
 毎日 09:00 JST (= 00:00 UTC) に GitHub Actions で実行
 """
 
+import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -136,56 +138,48 @@ def call_gemini(api_key: str, prompt: str) -> str:
 
 
 def summarize_all(api_key: str, sections: dict[str, list[dict]]) -> dict[str, str]:
-    """全セクションを1回のAPI呼び出しでまとめて要約する。"""
+    """全セクションを1回のAPI呼び出しでまとめて要約する。JSON形式で返させる。"""
+    keys = list(sections.keys())
     parts = []
-    for section, items in sections.items():
+    for i, (section, items) in enumerate(sections.items()):
         if not items:
             continue
         text = "\n".join(
             f"- {item.get('title', '')}: {item.get('abstract') or item.get('summary') or item.get('desc', '')}"
             for item in items
         )
-        parts.append(f"## {section}\n{text}")
+        parts.append(f"[{i}] {section}\n{text}")
 
+    result = {k: "" for k in keys}
     if not parts:
-        return {k: "" for k in sections}
+        return result
 
     prompt = (
         "以下の複数カテゴリの最新情報を、データサイエンティスト向けに日本語で要約してください。\n"
         "各カテゴリごとに、各項目を1〜2文で箇条書き（「• 」始め）にしてください。\n"
-        "何が新しいのか・なぜ重要かを含めてください。\n"
-        "出力形式:\n"
-        "## カテゴリ名\n• 要約1\n• 要約2\n\n"
-        "## 次のカテゴリ名\n• ...\n\n"
-        "---\n\n"
+        "何が新しいのか・なぜ重要かを含めてください。\n\n"
+        "必ず以下のJSON形式のみで回答し、他のテキストは含めないでください:\n"
+        '{"0": "• 要約\\n• 要約", "1": "• 要約\\n• 要約", ...}\n\n'
+        "カテゴリ番号と内容:\n"
         + "\n\n".join(parts)
     )
     print("Calling Gemini API (single request for all sections)...")
     raw = call_gemini(api_key, prompt)
+    print(f"  Raw response length: {len(raw)} chars")
 
-    result = {k: "" for k in sections}
     if not raw:
         return result
 
-    current = None
-    buf: list[str] = []
-    for line in raw.splitlines():
-        if line.startswith("## "):
-            if current and buf:
-                result[current] = "\n".join(buf).strip()
-                buf = []
-            # match section name loosely
-            heading = line[3:].strip()
-            for key in sections:
-                if key.lower() in heading.lower() or heading.lower() in key.lower():
-                    current = key
-                    break
-            else:
-                current = None
-        elif current:
-            buf.append(line)
-    if current and buf:
-        result[current] = "\n".join(buf).strip()
+    json_match = re.search(r'\{[\s\S]*\}', raw)
+    if not json_match:
+        print(f"  Warning: no JSON found in response. Raw:\n{raw[:300]}")
+        return result
+    try:
+        data = json.loads(json_match.group())
+        for i, key in enumerate(keys):
+            result[key] = data.get(str(i), "")
+    except json.JSONDecodeError as e:
+        print(f"  Warning: JSON parse error: {e}. Raw:\n{raw[:300]}")
     return result
 
 
