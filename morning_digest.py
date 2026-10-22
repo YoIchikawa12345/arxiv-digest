@@ -33,6 +33,7 @@ RSS_FEEDS = {
 
 NHK_FEEDS = {
     "社会":   "https://www.nhk.or.jp/rss/news/cat1.xml",
+    "政治":   "https://www.nhk.or.jp/rss/news/cat4.xml",
     "国際":   "https://www.nhk.or.jp/rss/news/cat6.xml",
     "経済":   "https://www.nhk.or.jp/rss/news/cat5.xml",
 }
@@ -262,9 +263,9 @@ def main():
 
     nhk_items = []
     for cat, url in NHK_FEEDS.items():
-        items = fetch_rss(f"NHK {cat}", url, max_items=2, max_age_hours=24)
+        items = fetch_rss(f"NHK {cat}", url, max_items=3, max_age_hours=48)
         nhk_items.extend(items)
-    nhk_links = [(i["title"][:30], i["url"]) for i in nhk_items[:4]]
+    nhk_links = [(i["title"][:30], i["url"]) for i in nhk_items[:8]]
 
     # Gemini API を1回だけ呼ぶ
     sums = summarize_all(api_key, {
