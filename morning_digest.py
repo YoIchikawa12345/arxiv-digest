@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 from google import genai
 
 JST = timezone(timedelta(hours=9))
-MODEL = "gemini-3.8-flash"
+MODEL = "gemini-2.5-flash"
 
 RSS_FEEDS = {
     "Google AI Blog":       "https://blog.google/technology/ai/rss/",
@@ -121,13 +121,14 @@ def summarize(client, section: str, items: list[dict]) -> str:
     )
     for attempt in range(4):
         try:
+            time.sleep(5)  # avoid rate limits between calls
             resp = client.models.generate_content(model=MODEL, contents=prompt)
             return resp.text.strip()
         except Exception as e:
             if attempt == 3:
                 print(f"  Warning: summarize failed for '{section}': {e}")
                 return ""
-            wait = 15 * (attempt + 1)
+            wait = 30 * (attempt + 1)
             print(f"  Gemini busy, retrying in {wait}s... ({attempt + 1}/3)")
             time.sleep(wait)
 
