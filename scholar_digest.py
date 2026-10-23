@@ -25,131 +25,81 @@ PAPERS_PER_RUN = 30
 DOCS_DIR = Path("docs")
 PAPERS_JSON = DOCS_DIR / "papers.json"
 
-ARXIV_QUERY = "cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV"
+SS_QUERIES = [
+    "deep learning neural network",
+    "large language model transformer",
+    "machine learning optimization",
+    "computer vision image recognition",
+    "natural language processing",
+    "reinforcement learning policy",
+    "generative model diffusion",
+    "graph neural network",
+]
 
 
 # ── Fetch ─────────────────────────────────────────────────────────────────────────────────
 
-def fetch_candidates() -> list[dict]:
-    """arXiv から過去6ヶ月の論文を取得し、Semantic Scholar引用数順で返す。"""
-    ns = {"atom": "http://www.w3.org/2005/Atom"}
-    end_date = datetime.now(timezone.utc)
-    start_date = end_date - timedelta(days=180)
-    date_range = (
-        "[" + start_date.strftime("%Y%m%d") + "0000"
-        + " TO " + end_date.strftime("%Y%m%d") + "2359]"
-    )
-    query = "(cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV) AND submittedDate:" + date_range
+def fetch_candidates(ss_api_key: str = "") -> list[dict]:
+    """Semantic Scholar 検索APIで高影響力論文を取得し、引用数順で返す。
+    API key があればそれを使う。なければ非認証で試みる（レート制限あり）。"""
+    headers = {"x-api-key": ss_api_key} if ss_api_key else {}
+    url = "https://api.semanticscholar.org/graph/v1/paper/search"
+    fields = "paperId,title,abstract,citationCount,influentialCitationCount,year,externalIds"
 
-    papers = []
     seen = set()
-    for start in range(0, 300, 100):
+    papers = []
+
+    for query in SS_QUERIES:
         params = {
-            "search_query": query,
-            "start": start,
-            "max_results": 100,
-            "sortBy": "submittedDate",
-            "sortOrder": "descending",
+            "query": query,
+            "fields": fields,
+            "fieldsOfStudy": "Computer Science",
+            "limit": 100,
         }
-        for attempt in range(3):
+        for attempt in range(4):
             try:
-                print(f"  arXiv batch start={start} (attempt {attempt+1})...")
-                resp = requests.get("http://export.arxiv.org/api/query", params=params, timeout=30)
+                print(f"  Querying SS: {query!r} (attempt {attempt+1})...")
+                resp = requests.get(url, params=params, headers=headers, timeout=20)
+                if resp.status_code == 429:
+                    wait = 20 * (attempt + 1)
+                    print(f"  Rate limited, waiting {wait}s...")
+                    time.sleep(wait)
+                    continue
                 resp.raise_for_status()
-                root = ET.fromstring(resp.text)
-                entries = root.findall("atom:entry", ns)
-                if not entries:
-                    break
-                for entry in entries:
-                    id_el = entry.find("atom:id", ns)
-                    if id_el is None:
+                for p in resp.json().get("data", []):
+                    pid = p.get("paperId", "")
+                    if not pid or pid in seen:
                         continue
-                    arxiv_id = id_el.text.split("abs/")[-1].strip().split("v")[0]
-                    if not arxiv_id or arxiv_id in seen:
-                        continue
-                    seen.add(arxiv_id)
-                    title_el = entry.find("atom:title", ns)
-                    summary_el = entry.find("atom:summary", ns)
-                    published_el = entry.find("atom:published", ns)
-                    title = (title_el.text if title_el is not None else "").strip().replace("\n", " ")
-                    abstract = (summary_el.text if summary_el is not None else "").strip()[:500]
-                    published = ((published_el.text if published_el is not None else "")[:10])
-                    year = published[:4]
-                    categories = [c.get("term", "") for c in entry.findall("atom:category", ns)]
+                    seen.add(pid)
+                    arxiv_id = (p.get("externalIds") or {}).get("ArXiv", "")
                     papers.append({
-                        "paperId": "arxiv:" + arxiv_id,
+                        "paperId": pid,
                         "arxivId": arxiv_id,
-                        "title": title,
-                        "year": year,
-                        "published": published,
-                        "categories": categories,
-                        "citationCount": 0,
-                        "influentialCitationCount": 0,
-                        "abstract": abstract,
-                        "url": "https://arxiv.org/abs/" + arxiv_id,
+                        "title": p.get("title", ""),
+                        "year": p.get("year", ""),
+                        "published": str(p.get("year", "")),
+                        "categories": [],
+                        "citationCount": p.get("citationCount") or 0,
+                        "influentialCitationCount": p.get("influentialCitationCount") or 0,
+                        "abstract": (p.get("abstract") or "")[:500],
+                        "url": "https://arxiv.org/abs/" + arxiv_id if arxiv_id
+                               else "https://www.semanticscholar.org/paper/" + pid,
                     })
                 break
             except Exception as e:
-                if attempt == 2:
-                    print(f"  arXiv warning: {e}")
+                if attempt == 3:
+                    print(f"  Warning ({query!r}): {e}")
                 else:
-                    time.sleep(20)
-        time.sleep(3)
+                    time.sleep(5 * (attempt + 1))
+        time.sleep(1)  # polite delay
 
-    print(f"  arXiv candidates: {len(papers)}")
-    _enrich_with_citations(papers)
     papers.sort(
         key=lambda p: (p.get("influentialCitationCount", 0), p.get("citationCount", 0)),
         reverse=True,
     )
-    if papers:
-        print(f"  Top: influential={papers[0].get('influentialCitationCount',0)} {papers[0]['title'][:50]}")
+    top = papers[0] if papers else {}
+    print(f"  Total candidates: {len(papers)}, top influential={top.get('influentialCitationCount', 0)}: {top.get('title','')[:50]}")
     return papers
-
-
-def _enrich_with_citations(papers: list[dict]) -> None:
-    """Semantic Scholar バッチAPIで引用数を取得して論文に付与する。"""
-    BATCH = 100
-    url = "https://api.semanticscholar.org/graph/v1/paper/batch"
-    fields = "paperId,citationCount,influentialCitationCount,externalIds"
-    for i in range(0, len(papers), BATCH):
-        batch = papers[i:i + BATCH]
-        ids = ["ArXiv:" + p["arxivId"] for p in batch]
-        for attempt in range(3):
-            try:
-                resp = requests.post(url, params={"fields": fields}, json={"ids": ids}, timeout=30)
-                if resp.status_code == 429:
-                    wait = 20 * (attempt + 1)
-                    print(f"  SS rate limited, waiting {wait}s...")
-                    time.sleep(wait)
-                    continue
-                if resp.status_code != 200:
-                    print(f"  SS batch error: {resp.status_code}")
-                    break
-                ss_map = {}
-                for item in resp.json():
-                    if not item:
-                        continue
-                    aid = (item.get("externalIds") or {}).get("ArXiv", "")
-                    if aid:
-                        ss_map[aid] = item
-                for p in batch:
-                    ss = ss_map.get(p["arxivId"])
-                    if ss:
-                        p["citationCount"] = ss.get("citationCount") or 0
-                        p["influentialCitationCount"] = ss.get("influentialCitationCount") or 0
-                        if ss.get("paperId"):
-                            p["paperId"] = ss["paperId"]
-                found = sum(1 for p in batch if p.get("citationCount", 0) > 0)
-                print(f"  SS batch {i//BATCH+1}: {found}/{len(batch)} with citation data")
-                break
-            except Exception as e:
-                if attempt == 2:
-                    print(f"  SS batch error: {e}")
-                else:
-                    time.sleep(10)
-        if i + BATCH < len(papers):
-            time.sleep(2)
 
 
 def load_papers() -> list[dict]:
@@ -168,14 +118,13 @@ def save_papers(papers: list[dict]) -> None:
 def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
     result = []
     for p in candidates:
-        uid = re.sub(r'v\d+$', '', p.get("arxivId") or p.get("paperId", ""))
+        uid = p.get("paperId", "")
         if uid in sent_ids:
             continue
         result.append(p)
         if len(result) >= PAPERS_PER_RUN:
             break
     return result
-
 
 # ── Summarize ─────────────────────────────────────────────────────────────────────────────
 
@@ -465,11 +414,12 @@ def main():
     if not api_key:
         sys.exit("Error: GEMINI_API_KEY is not set.")
 
-    print("Fetching arXiv candidates...")
-    candidates = fetch_candidates()
+    ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY", "")
+    print("Fetching Semantic Scholar candidates...")
+    candidates = fetch_candidates(ss_api_key)
 
     existing = load_papers()
-    sent_ids = {re.sub(r'v\d+$', '', p.get("arxivId") or p.get("paperId", "")) for p in existing}
+    sent_ids = {p.get("paperId", "") for p in existing}
 
     new_papers = pick_new(candidates, sent_ids)
     if not new_papers:
