@@ -26,10 +26,8 @@ PAPERS_JSON = DOCS_DIR / "papers.json"
 
 QUERIES = [
     "large language model",
-    "deep learning transformer",
     "diffusion model generative",
     "reinforcement learning",
-    "computer vision neural network",
 ]
 
 
@@ -66,7 +64,7 @@ def fetch_candidates() -> list[dict]:
             except Exception as e:
                 print(f"    Warning: {e}")
                 break
-        time.sleep(3)  # rate limit
+        time.sleep(10)  # rate limit
 
     papers.sort(key=lambda p: p.get("influentialCitationCount", 0), reverse=True)
     print(f"  Total candidates: {len(papers)}")
@@ -325,6 +323,9 @@ def main():
     new_papers = pick_new(candidates, sent_ids)
     if not new_papers:
         print("No new papers to add.")
+        save_papers(existing)
+        html = generate_index_html(existing)
+        (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
         return
 
     print(f"Summarizing {len(new_papers)} new papers...")
