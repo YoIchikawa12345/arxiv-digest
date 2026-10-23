@@ -168,7 +168,7 @@ def save_papers(papers: list[dict]) -> None:
 def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
     result = []
     for p in candidates:
-        uid = p.get("arxivId") or p.get("paperId", "")
+        uid = re.sub(r'v\d+$', '', p.get("arxivId") or p.get("paperId", ""))
         if uid in sent_ids:
             continue
         result.append(p)
@@ -469,7 +469,7 @@ def main():
     candidates = fetch_candidates()
 
     existing = load_papers()
-    sent_ids = {p.get("arxivId") or p.get("paperId", "") for p in existing}
+    sent_ids = {re.sub(r'v\d+$', '', p.get("arxivId") or p.get("paperId", "")) for p in existing}
 
     new_papers = pick_new(candidates, sent_ids)
     if not new_papers:
