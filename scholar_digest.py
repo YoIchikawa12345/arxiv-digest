@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Semantic Scholar 高影響力論文ダイジェスト
-- Semantic Scholar APIからAI分野の高影響力論文を取得
+arXiv 最新AI論文ダイジェスト
+- arXiv APIから最新AI/ML論文を取得
 - 送信済み論文を除外し、毎回PAPERS_PER_RUN件ずつ追加
 - docs/papers.json に蓄積、docs/index.html を再生成
 - 新規追加論文をSlackに通知
@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -24,49 +25,76 @@ PAPERS_PER_RUN = 30
 DOCS_DIR = Path("docs")
 PAPERS_JSON = DOCS_DIR / "papers.json"
 
-QUERIES = [
-    "large language model",
-    "diffusion model generative",
-    "reinforcement learning",
-]
+ARXIV_QUERY = "cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV"
 
 
-# ── Fetch ─────────────────────────────────────────────────────────────────────
+# ── Fetch ─────────────────────────────────────────────────────────────────────────────────
 
 def fetch_candidates() -> list[dict]:
-    """複数クエリでSemantic ScholarからAI論文を取得し、影響力スコア順で返す。"""
-    seen = set()
-    papers = []
-    for query in QUERIES:
-        print(f"  Querying: {query}")
-        url = "https://api.semanticscholar.org/graph/v1/paper/search"
-        params = {
-            "query": query,
-            "fields": "paperId,title,abstract,citationCount,influentialCitationCount,year,externalIds",
-            "fieldsOfStudy": "Computer Science",
-            "limit": 100,
-        }
-        for attempt in range(4):
-            try:
-                resp = requests.get(url, params=params, timeout=20)
-                if resp.status_code == 429:
-                    wait = 15 * (attempt + 1)
-                    print(f"    Rate limited, waiting {wait}s...")
-                    time.sleep(wait)
-                    continue
-                resp.raise_for_status()
-                for p in resp.json().get("data", []):
-                    pid = p.get("paperId", "")
-                    if pid and pid not in seen:
-                        seen.add(pid)
-                        papers.append(p)
-                break
-            except Exception as e:
-                print(f"    Warning: {e}")
-                break
-        time.sleep(10)  # rate limit
+    """arXiv APIからAI/ML論文を取得し、投稿日時順で返す。"""
+    url = "http://export.arxiv.org/api/query"
+    params = {
+        "search_query": ARXIV_QUERY,
+        "sortBy": "submittedDate",
+        "sortOrder": "descending",
+        "start": 0,
+        "max_results": 100,
+    }
 
-    papers.sort(key=lambda p: p.get("influentialCitationCount", 0), reverse=True)
+    resp = None
+    for attempt in range(3):
+        try:
+            print(f"  Querying arXiv API (attempt {attempt + 1})...")
+            resp = requests.get(url, params=params, timeout=30)
+            resp.raise_for_status()
+            break
+        except Exception as e:
+            if attempt == 2:
+                print(f"  Warning: {e}")
+                return []
+            wait = 20 * (attempt + 1)
+            print(f"  Retrying in {wait}s...")
+            time.sleep(wait)
+
+    if resp is None:
+        return []
+
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    root = ET.fromstring(resp.text)
+
+    papers = []
+    seen = set()
+    for entry in root.findall("atom:entry", ns):
+        id_el = entry.find("atom:id", ns)
+        if id_el is None:
+            continue
+        arxiv_id = id_el.text.split("abs/")[-1].strip()
+        if arxiv_id in seen:
+            continue
+        seen.add(arxiv_id)
+
+        title_el = entry.find("atom:title", ns)
+        summary_el = entry.find("atom:summary", ns)
+        published_el = entry.find("atom:published", ns)
+
+        title = (title_el.text if title_el is not None else "").strip().replace("\n", " ")
+        abstract = (summary_el.text if summary_el is not None else "").strip()[:500]
+        published = ((published_el.text if published_el is not None else "")[:10])
+        year = published[:4]
+
+        papers.append({
+            "paperId": arxiv_id,
+            "arxivId": arxiv_id,
+            "title": title,
+            "year": year,
+            "published": published,
+            "citationCount": 0,
+            "influentialCitationCount": 0,
+            "abstract": abstract,
+            "url": f"https://arxiv.org/abs/{arxiv_id}",
+        })
+
+    papers.sort(key=lambda p: p.get("published", ""), reverse=True)
     print(f"  Total candidates: {len(papers)}")
     return papers
 
@@ -89,30 +117,18 @@ def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
     for p in candidates:
         if p.get("paperId") in sent_ids:
             continue
-        arxiv_id = (p.get("externalIds") or {}).get("ArXiv", "")
-        result.append({
-            "paperId": p["paperId"],
-            "arxivId": arxiv_id,
-            "title": p.get("title", ""),
-            "year": p.get("year", ""),
-            "citationCount": p.get("citationCount", 0),
-            "influentialCitationCount": p.get("influentialCitationCount", 0),
-            "abstract": (p.get("abstract") or "")[:500],
-            "url": f"https://arxiv.org/abs/{arxiv_id}" if arxiv_id else
-                   f"https://www.semanticscholar.org/paper/{p['paperId']}",
-        })
+        result.append(p)
         if len(result) >= PAPERS_PER_RUN:
             break
     return result
 
 
-# ── Summarize ─────────────────────────────────────────────────────────────────
+# ── Summarize ─────────────────────────────────────────────────────────────────────────────
 
 SUMMARIZE_BATCH = 10  # Gemini に一度に送る論文数
 
 
 def _summarize_batch(client, papers: list[dict]) -> list[str]:
-    """papers（最大SUMMARIZE_BATCH件）をGeminiで要約して返す。"""
     parts = [
         f"[{i}] {p['title']} ({p['year']})\n{p['abstract']}"
         for i, p in enumerate(papers)
@@ -120,7 +136,7 @@ def _summarize_batch(client, papers: list[dict]) -> list[str]:
     prompt = (
         "以下のAI・機械学習論文を、日本語でわかりやすく解説してください。\n"
         "対象読者はAIや機械学習をあまり知らない初心者です。\n\n"
-        "各論文について、以下の点を含めて4〜6文程度で解説してください：\n"
+        "各論文について、以下の点を含めて4～6文程度で解説してください：\n"
         "1. どんな課題・問題を解こうとしているか（背景）\n"
         "2. どんな手法やアルゴリズムを使っているか（内容）\n"
         "3. 実験でどんな結果が得られたか（成果）\n\n"
@@ -150,7 +166,6 @@ def _summarize_batch(client, papers: list[dict]) -> list[str]:
 
 
 def summarize(api_key: str, papers: list[dict]) -> list[str]:
-    """全論文をSUMMARIZE_BATCH件ずつバッチ処理して要約する。"""
     client = genai.Client(api_key=api_key)
     results = []
     for i in range(0, len(papers), SUMMARIZE_BATCH):
@@ -161,12 +176,13 @@ def summarize(api_key: str, papers: list[dict]) -> list[str]:
             time.sleep(5)
     return results
 
-# ── HTML ──────────────────────────────────────────────────────────────────────
+
+# ── HTML ──────────────────────────────────────────────────────────────────────────────────────
 
 def generate_index_html(all_papers: list[dict]) -> str:
     sorted_papers = sorted(
         all_papers,
-        key=lambda p: p.get("influentialCitationCount", 0),
+        key=lambda p: p.get("published", p.get("year", "")),
         reverse=True,
     )
 
@@ -177,9 +193,7 @@ def generate_index_html(all_papers: list[dict]) -> str:
         cards += f"""
     <article class="card">
       <div class="card-meta">
-        <span class="score">★ {p.get('influentialCitationCount', 0)} influential</span>
-        <span class="cite">引用 {p.get('citationCount', 0)}</span>
-        <span class="year">{p.get('year', '')}</span>
+        <span class="date">📅 {p.get('published', p.get('year', ''))}</span>
         <span class="added">追加: {p.get('addedDate', '')}</span>
       </div>
       <h2 class="card-title">
@@ -247,7 +261,7 @@ body {{
   display: flex; flex-wrap: wrap; gap: 10px;
   font-size: 12px; color: var(--fg3); margin-bottom: 8px;
 }}
-.score {{ color: var(--accent); font-weight: 700; }}
+.date {{ color: var(--accent); font-weight: 700; }}
 .card-title {{ margin: 0 0 10px; font-size: 16px; font-weight: 700; line-height: 1.4; }}
 .card-title a {{ color: var(--link); text-decoration: none; }}
 .card-title a:hover {{ text-decoration: underline; }}
@@ -258,12 +272,12 @@ body {{
 <div class="container">
   <header class="site-header">
     <h1>AI論文まとめ</h1>
-    <p>Semantic Scholarの影響力スコア順に厳選したAI論文の日本語要約集</p>
+    <p>arXivの最新AI・機械学習論文の日本語要約集</p>
   </header>
   <div class="stats">
     <span>論文数: <strong>{count}</strong></span>
     <span>最終更新: <strong>{updated}</strong></span>
-    <span>影響力スコア（influential citations）順</span>
+    <span>投稿日時順</span>
   </div>
   {cards}
 </div>
@@ -271,7 +285,7 @@ body {{
 </html>"""
 
 
-# ── Slack ─────────────────────────────────────────────────────────────────────
+# ── Slack ──────────────────────────────────────────────────────────────────────────────────
 
 def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
     date_str = datetime.now(JST).strftime("%Y年%m月%d日")
@@ -290,7 +304,7 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
                 "type": "mrkdwn",
                 "text": "\n".join([
                     f"*{p['title']}* ({p.get('year','')})",
-                    f"\u2605 {p.get('influentialCitationCount',0)} influential \u00b7 \u5f15\u7528 {p.get('citationCount',0)}",
+                    f"📅 投稿: {p.get('published', p.get('year',''))}",
                     summary,
                 ]),
             },
@@ -305,50 +319,6 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
     resp.raise_for_status()
     print("Slack post OK.")
 
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main():
-    webhook = os.environ.get("SLACK_WEBHOOK_URL")
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        sys.exit("Error: GEMINI_API_KEY is not set.")
-
-    print("Fetching Semantic Scholar candidates...")
-    candidates = fetch_candidates()
-
-    existing = load_papers()
-    sent_ids = {p["paperId"] for p in existing}
-
-    new_papers = pick_new(candidates, sent_ids)
-    if not new_papers:
-        print("No new papers to add.")
-        save_papers(existing)
-        html = generate_index_html(existing)
-        (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
-        return
-
-    print(f"Summarizing {len(new_papers)} new papers...")
-    summaries = summarize(api_key, new_papers)
-
-    today = datetime.now(JST).strftime("%Y-%m-%d")
-    for p, s in zip(new_papers, summaries):
-        p["summary"] = s
-        p["addedDate"] = today
-        del p["abstract"]
-
-    all_papers = existing + new_papers
-    save_papers(all_papers)
-    print(f"papers.json updated: {len(all_papers)} papers total.")
-
-    html = generate_index_html(all_papers)
-    (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
-    print("docs/index.html generated.")
-
-    if webhook:
-        post_to_slack(webhook, new_papers)
-    else:
-        print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
 
 
 if __name__ == "__main__":
