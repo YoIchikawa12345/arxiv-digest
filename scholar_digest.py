@@ -321,5 +321,50 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
 
 
 
+# ── Main ──────────────────────────────────────────────────────────────────────────────────
+
+def main():
+    webhook = os.environ.get("SLACK_WEBHOOK_URL")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        sys.exit("Error: GEMINI_API_KEY is not set.")
+
+    print("Fetching arXiv candidates...")
+    candidates = fetch_candidates()
+
+    existing = load_papers()
+    sent_ids = {p["paperId"] for p in existing}
+
+    new_papers = pick_new(candidates, sent_ids)
+    if not new_papers:
+        print("No new papers to add.")
+        save_papers(existing)
+        html = generate_index_html(existing)
+        (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
+        return
+
+    print(f"Summarizing {len(new_papers)} new papers...")
+    summaries = summarize(api_key, new_papers)
+
+    today = datetime.now(JST).strftime("%Y-%m-%d")
+    for p, s in zip(new_papers, summaries):
+        p["summary"] = s
+        p["addedDate"] = today
+        del p["abstract"]
+
+    all_papers = existing + new_papers
+    save_papers(all_papers)
+    print(f"papers.json updated: {len(all_papers)} papers total.")
+
+    html = generate_index_html(all_papers)
+    (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
+    print("docs/index.html generated.")
+
+    if webhook:
+        post_to_slack(webhook, new_papers)
+    else:
+        print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
+
+
 if __name__ == "__main__":
     main()
