@@ -2,8 +2,8 @@ name: Scholar Digest → AI論文まとめページ
 
 on:
   schedule:
-    # 毎日 10:00 JST (= 01:00 UTC) に実行
-    - cron: "0 1 * * *"
+    # 6時間ごと (10:00 / 16:00 / 22:00 / 04:00 JST) に実行
+    - cron: "0 1,7,13,19 * * *"
   workflow_dispatch:
 
 jobs:
