@@ -315,7 +315,7 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
         })
         blocks.append({"type": "divider"})
 
-    resp = requests.post(webhook_url, json={"blocks": blocks}, timeout=15)
+    resp = requests.post(webhook_url, json={"blocks": blocks[:50]}, timeout=15)
     resp.raise_for_status()
     print("Slack post OK.")
 
@@ -361,7 +361,10 @@ def main():
     print("docs/index.html generated.")
 
     if webhook:
-        post_to_slack(webhook, new_papers)
+        try:
+            post_to_slack(webhook, new_papers[:15])
+        except Exception as e:
+            print(f"Slack post failed (non-fatal): {e}")
     else:
         print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
 
