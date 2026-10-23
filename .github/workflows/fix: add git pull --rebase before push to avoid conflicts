@@ -39,5 +39,6 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "scholar: $(date -u +%Y-%m-%d)"
+            git pull --rebase origin main
             git push
           fi
