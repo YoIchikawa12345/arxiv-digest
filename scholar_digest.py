@@ -82,12 +82,14 @@ def fetch_candidates() -> list[dict]:
         published = ((published_el.text if published_el is not None else "")[:10])
         year = published[:4]
 
+        categories = [c.get("term", "") for c in entry.findall("atom:category", ns)]
         papers.append({
             "paperId": arxiv_id,
             "arxivId": arxiv_id,
             "title": title,
             "year": year,
             "published": published,
+            "categories": categories,
             "citationCount": 0,
             "influentialCitationCount": 0,
             "abstract": abstract,
@@ -177,34 +179,11 @@ def summarize(api_key: str, papers: list[dict]) -> list[str]:
     return results
 
 
-# ── HTML ──────────────────────────────────────────────────────────────────────────────────────
+# ── HTML ─────────────────────────────────────────────────────────────────────────────────────
 
 def generate_index_html(all_papers: list[dict]) -> str:
-    sorted_papers = sorted(
-        all_papers,
-        key=lambda p: p.get("published", p.get("year", "")),
-        reverse=True,
-    )
-
-    cards = ""
-    for p in sorted_papers:
-        summary = p.get("summary", "").replace("<", "&lt;").replace(">", "&gt;")
-        title = p.get("title", "").replace("<", "&lt;").replace(">", "&gt;")
-        cards += f"""
-    <article class="card">
-      <div class="card-meta">
-        <span class="date">📅 {p.get('published', p.get('year', ''))}</span>
-        <span class="added">追加: {p.get('addedDate', '')}</span>
-      </div>
-      <h2 class="card-title">
-        <a href="{p.get('url','#')}" target="_blank" rel="noopener">{title}</a>
-      </h2>
-      <p class="card-summary">{summary if summary else '（要約なし）'}</p>
-    </article>"""
-
     count = len(all_papers)
     updated = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
-
     return f"""<!doctype html>
 <html lang="ja">
 <head>
@@ -214,76 +193,181 @@ def generate_index_html(all_papers: list[dict]) -> str:
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
 <style>
 :root {{
-  --bg: #ffffff; --bg2: #f7f8fa; --fg: #1a1a1a; --fg2: #555; --fg3: #888;
-  --border: #e0e3e8; --accent: #3563e9; --accent-light: #e8eeff;
-  --link: #3563e9;
+  --bg:#fff;--bg2:#f7f8fa;--fg:#1a1a1a;--fg2:#555;--fg3:#888;
+  --border:#e0e3e8;--accent:#3563e9;--accent-light:#e8eeff;--link:#3563e9;
 }}
-@media (prefers-color-scheme: dark) {{
-  :root:not([data-theme="light"]) {{
-    --bg: #0f1117; --bg2: #181c25; --fg: #e8eaf0; --fg2: #a0a8b8; --fg3: #6b7280;
-    --border: #2a2f3e; --accent: #6b9aff; --accent-light: #1a2340; --link: #6b9aff;
-    color-scheme: dark;
+@media (prefers-color-scheme:dark) {{
+  :root:not([data-theme=light]) {{
+    --bg:#0f1117;--bg2:#181c25;--fg:#e8eaf0;--fg2:#a0a8b8;--fg3:#6b7280;
+    --border:#2a2f3e;--accent:#6b9aff;--accent-light:#1a2340;--link:#6b9aff;
+    color-scheme:dark;
   }}
 }}
-:root[data-theme="dark"] {{
-  --bg: #0f1117; --bg2: #181c25; --fg: #e8eaf0; --fg2: #a0a8b8; --fg3: #6b7280;
-  --border: #2a2f3e; --accent: #6b9aff; --accent-light: #1a2340; --link: #6b9aff;
-  color-scheme: dark;
+:root[data-theme=dark] {{
+  --bg:#0f1117;--bg2:#181c25;--fg:#e8eaf0;--fg2:#a0a8b8;--fg3:#6b7280;
+  --border:#2a2f3e;--accent:#6b9aff;--accent-light:#1a2340;--link:#6b9aff;
+  color-scheme:dark;
 }}
-*, *::before, *::after {{ box-sizing: border-box; }}
-body {{
-  background: var(--bg); color: var(--fg);
-  font-family: 'Noto Sans JP', sans-serif; font-size: 15px; line-height: 1.8;
-  margin: 0;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 0 64px;
+*,*::before,*::after{{box-sizing:border-box}}
+body{{
+  background:var(--bg);color:var(--fg);
+  font-family:'Noto Sans JP',sans-serif;font-size:15px;line-height:1.8;
+  margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 64px;
 }}
-.container {{ max-width: 760px; margin: 0 auto; }}
-.site-header {{
-  padding-block: 40px 24px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 32px;
+.container{{max-width:760px;margin:0 auto}}
+.site-header{{padding-block:40px 24px;border-bottom:1px solid var(--border);margin-bottom:24px}}
+.site-header h1{{margin:0 0 4px;font-size:24px;font-weight:700}}
+.site-header p{{margin:0;font-size:13px;color:var(--fg3)}}
+.search-wrap{{margin-bottom:16px}}
+#searchInput{{
+  width:100%;padding:10px 14px;font-size:15px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--bg2);color:var(--fg);outline:none;font-family:inherit;
 }}
-.site-header h1 {{ margin: 0 0 8px; font-size: 24px; font-weight: 700; }}
-.site-header p {{ margin: 0; font-size: 13px; color: var(--fg3); }}
-.stats {{
-  display: flex; gap: 16px; flex-wrap: wrap;
-  margin-bottom: 28px; font-size: 13px; color: var(--fg3);
+#searchInput:focus{{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}}
+.tabs{{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}}
+.tab{{
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--fg2);font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:background .15s,color .15s;
 }}
-.stats strong {{ color: var(--fg); }}
-.card {{
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 20px 24px; margin-bottom: 16px;
-  background: var(--bg);
+.tab:hover,.tab.active{{background:var(--accent);color:#fff;border-color:var(--accent)}}
+.top-bar{{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px;margin-bottom:12px;font-size:13px;color:var(--fg3);
 }}
-.card-meta {{
-  display: flex; flex-wrap: wrap; gap: 10px;
-  font-size: 12px; color: var(--fg3); margin-bottom: 8px;
+.top-bar strong{{color:var(--fg)}}
+.pagination{{display:flex;flex-wrap:wrap;gap:6px;align-items:center}}
+.page-btn{{
+  min-width:36px;height:36px;padding:0 10px;border-radius:6px;
+  border:1px solid var(--border);background:var(--bg2);color:var(--fg2);
+  font-size:13px;cursor:pointer;font-family:inherit;
 }}
-.date {{ color: var(--accent); font-weight: 700; }}
-.card-title {{ margin: 0 0 10px; font-size: 16px; font-weight: 700; line-height: 1.4; }}
-.card-title a {{ color: var(--link); text-decoration: none; }}
-.card-title a:hover {{ text-decoration: underline; }}
-.card-summary {{ margin: 0; font-size: 14px; color: var(--fg2); line-height: 1.7; }}
+.page-btn:hover,.page-btn.active{{background:var(--accent);color:#fff;border-color:var(--accent)}}
+.bottom-bar{{display:flex;justify-content:flex-end;margin-top:20px}}
+.card{{border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:16px;background:var(--bg)}}
+.card-meta{{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--fg3);margin-bottom:8px}}
+.date{{color:var(--accent);font-weight:700}}
+.card-cat{{background:var(--accent-light);color:var(--accent);padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700}}
+.card-title{{margin:0 0 10px;font-size:16px;font-weight:700;line-height:1.4}}
+.card-title a{{color:var(--link);text-decoration:none}}
+.card-title a:hover{{text-decoration:underline}}
+.card-summary{{margin:0;font-size:14px;color:var(--fg2);line-height:1.7}}
+.no-results{{text-align:center;padding:64px 0;color:var(--fg3)}}
+.loading{{text-align:center;padding:40px 0;color:var(--fg3)}}
 </style>
 </head>
 <body>
 <div class="container">
   <header class="site-header">
     <h1>AI論文まとめ</h1>
-    <p>arXivの最新AI・機械学習論文の日本語要約集</p>
+    <p>arXivの最新AI・機械学習論文の日本語要約集 &nbsp;·&nbsp; 全 {count} 件 &nbsp;·&nbsp; 最終更新 {updated}</p>
   </header>
-  <div class="stats">
-    <span>論文数: <strong>{count}</strong></span>
-    <span>最終更新: <strong>{updated}</strong></span>
-    <span>投稿日時順</span>
+  <div class="search-wrap">
+    <input type="search" id="searchInput" placeholder="タイトル・要約を検索…" autocomplete="off">
   </div>
-  {cards}
+  <div class="tabs" role="tablist">
+    <button class="tab active" onclick="setTab(this,'all')">すべて</button>
+    <button class="tab" onclick="setTab(this,'cs.AI')">🤖 AI・推論</button>
+    <button class="tab" onclick="setTab(this,'cs.LG')">📊 機械学習</button>
+    <button class="tab" onclick="setTab(this,'cs.CL')">💬 自然言語処理</button>
+    <button class="tab" onclick="setTab(this,'cs.CV')">🖼 画像・Vision</button>
+  </div>
+  <div class="top-bar">
+    <span id="statsText"></span>
+    <div class="pagination" id="paginTop"></div>
+  </div>
+  <div id="cards"><div class="loading">読み込み中…</div></div>
+  <div class="bottom-bar">
+    <div class="pagination" id="paginBottom"></div>
+  </div>
 </div>
+<script>
+(function() {{
+  var PER_PAGE = 10, page = 1, cat = 'all', q = '', PAPERS = [];
+  var CAT_LABELS = {{'cs.AI':'AI・推論','cs.LG':'機械学習','cs.CL':'自然言語処理','cs.CV':'画像・Vision'}};
+  function getCat(p) {{
+    var c = (p.categories || [])[0];
+    if (c) return c;
+    var t = ((p.title||'') + ' ' + (p.summary||'')).toLowerCase();
+    if (/language model|llm|nlp|translation|tokeniz|speech|chat|dialogue|prompt/.test(t)) return 'cs.CL';
+    if (/image|vision|visual|pixel|video|3d|segmentation|detection|recognition|diffusion/.test(t)) return 'cs.CV';
+    if (/reinforcement|reward|policy|agent|planning|reasoning|logic|knowledge/.test(t)) return 'cs.AI';
+    return 'cs.LG';
+  }}
+  function esc(s) {{
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }}
+  function filtered() {{
+    return PAPERS.filter(function(p) {{
+      if (cat !== 'all' && getCat(p) !== cat) return false;
+      if (q && ((p.title||'') + ' ' + (p.summary||'')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }});
+  }}
+  function renderPagin(total, id) {{
+    var el = document.getElementById(id);
+    var pages = Math.ceil(total / PER_PAGE);
+    if (pages <= 1) {{ el.innerHTML = ''; return; }}
+    var h = '';
+    if (page > 1) h += '<button class="page-btn" onclick="go(' + (page-1) + ')">← 前へ</button>';
+    for (var i = 1; i <= pages; i++) {{
+      if (i === 1 || i === pages || Math.abs(i-page) <= 2)
+        h += '<button class="page-btn' + (i===page?' active':'') + '" onclick="go(' + i + ')">' + i + '</button>';
+      else if (Math.abs(i-page) === 3)
+        h += '<span style="color:var(--fg3);padding:0 4px">…</span>';
+    }}
+    if (page < pages) h += '<button class="page-btn" onclick="go(' + (page+1) + ')">次へ →</button>';
+    el.innerHTML = h;
+  }}
+  function render() {{
+    var f = filtered(), total = f.length;
+    var slice = f.slice((page-1)*PER_PAGE, page*PER_PAGE);
+    document.getElementById('statsText').innerHTML =
+      '<strong>' + total + '</strong> 件 / 全 <strong>' + PAPERS.length + '</strong> 件';
+    renderPagin(total,'paginTop');
+    renderPagin(total,'paginBottom');
+    if (!slice.length) {{
+      document.getElementById('cards').innerHTML = '<div class="no-results">該当する論文が見つかりませんでした。</div>';
+      return;
+    }}
+    var html = '';
+    for (var j = 0; j < slice.length; j++) {{
+      var p = slice[j], c = getCat(p), label = CAT_LABELS[c] || c;
+      html += '<article class="card">' +
+        '<div class="card-meta">' +
+        '<span class="date">📅 ' + esc(p.published||p.year||'') + '</span>' +
+        '<span class="card-cat">' + label + '</span>' +
+        '<span>追加: ' + esc(p.addedDate||'') + '</span>' +
+        '</div>' +
+        '<h2 class="card-title"><a href="' + esc(p.url||'#') + '" target="_blank" rel="noopener">' + esc(p.title||'') + '</a></h2>' +
+        '<p class="card-summary">' + esc(p.summary||'（要約なし）') + '</p>' +
+        '</article>';
+    }}
+    document.getElementById('cards').innerHTML = html;
+  }}
+  window.go = function(n) {{ page = n; render(); window.scrollTo(0,0); }};
+  window.setTab = function(btn, c) {{
+    document.querySelectorAll('.tab').forEach(function(t) {{ t.classList.remove('active'); }});
+    btn.classList.add('active');
+    cat = c; page = 1; render();
+  }};
+  document.getElementById('searchInput').addEventListener('input', function(e) {{
+    q = e.target.value.toLowerCase().trim(); page = 1; render();
+  }});
+  fetch('papers.json')
+    .then(function(r) {{ return r.json(); }})
+    .then(function(data) {{ PAPERS = data; render(); }})
+    .catch(function() {{
+      document.getElementById('cards').innerHTML = '<div class="no-results">データの読み込みに失敗しました。</div>';
+    }});
+}})();
+</script>
 </body>
 </html>"""
-
 
 # ── Slack ──────────────────────────────────────────────────────────────────────────────────
 
