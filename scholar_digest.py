@@ -290,13 +290,11 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": (
-                    f"*{p['title']}* ({p.get('year','')})
-"
-                    f"★ {p.get('influentialCitationCount',0)} influential · 引用 {p.get('citationCount',0)}
-"
-                    f"{summary}"
-                ),
+                "text": "\n".join([
+                    f"*{p['title']}* ({p.get('year','')})",
+                    f"\u2605 {p.get('influentialCitationCount',0)} influential \u00b7 \u5f15\u7528 {p.get('citationCount',0)}",
+                    summary,
+                ]),
             },
         })
         blocks.append({
