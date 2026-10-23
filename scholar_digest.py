@@ -41,7 +41,7 @@ SS_QUERIES = [
 
 def fetch_candidates(ss_api_key: str = "") -> list[dict]:
     """Semantic Scholar 検索APIで高影響力論文を取得し、引用数順で返す。
-    API key があればそれを使う。なしれば非認証で試みる（レート制限あり）。"""
+    API key があればそれを使う。なければ非認証で試みる（レート制限あり）。"""
     headers = {"x-api-key": ss_api_key} if ss_api_key else {}
     url = "https://api.semanticscholar.org/graph/v1/paper/search"
     fields = "paperId,title,abstract,citationCount,influentialCitationCount,year,externalIds"
@@ -127,6 +127,9 @@ def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
 
 SUMMARIZE_BATCH = 10  # Gemini に一度に送る論文数
 
+class GeminiQuotaExceeded(Exception):
+    pass
+
 def _summarize_batch(client, papers: list[dict]) -> list[dict]:
     parts = [
         f"[{i}] {p['title']} ({p['year']})\n{p['abstract']}"
@@ -135,12 +138,12 @@ def _summarize_batch(client, papers: list[dict]) -> list[dict]:
     prompt = (
         "以下のAI・機械学習論文を、日本語でわかりやすく解説してください。\n"
         "対象読者はAIや機械学習をあまり知らない初心者です。\n\n"
-        "各論文につうください：\n"
+        "各論文について以下を返してください：\n"
         "1. summary: 4～6文程度の解説（背景・手法・成果）\n"
         "   - 「歴史的な論文」「分野を変えた」などの評価コメントは書かない\n"
-        "   - 初めて読　人がイャ#��ジできる具体的な表現を使う\n"
+        "   - 初めて読　人がイメージできる具体的な表現を使う\n"
         "2. terms: 論文中の重要な専門用語を3～5個ピックアップし、平易な日本語で1文ずつ解説\n\n"
-        "必せ以下のJSON形式のみで回答:\n"
+        "必ず以下のJSON形式のみで回答:\n"
         '{"0": {"summary": "解説文", "terms": {"用語1": "説明", "用語2": "説明"}}, "1": {...}, ...}\n\n'
         + "\n\n".join(parts)
     )
@@ -154,6 +157,9 @@ def _summarize_batch(client, papers: list[dict]) -> list[dict]:
                 data = json.loads(m.group())
                 return [data.get(str(i), empty) for i in range(len(papers))]
         except Exception as e:
+            err = str(e).lower()
+            if any(kw in err for kw in ("quota", "resource_exhausted", "429", "rate limit")):
+                raise GeminiQuotaExceeded(str(e))
             if attempt == 2:
                 print(f"  Gemini error: {e}")
                 return [empty] * len(papers)
@@ -373,7 +379,7 @@ body{{
 </body>
 </html>"""
 
-# ── Slack ─────────────────────────────────────────────────────────────────────────────────
+# ── Slack ──────────────────────────────────────────────────────────────────────────────────
 
 def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
     date_str = datetime.now(JST).strftime("%Y噴%m月%d日")
@@ -435,7 +441,11 @@ def main():
         return
 
     print(f"Summarizing {len(new_papers)} new papers...")
-    summaries = summarize(api_key, new_papers)
+    try:
+        summaries = summarize(api_key, new_papers)
+    except GeminiQuotaExceeded as e:
+        print(f"Gemini quota exceeded, skipping update: {e}")
+        return
 
     today = datetime.now(JST).strftime("%Y-%m-%d")
     for p, s in zip(new_papers, summaries):
