@@ -24,6 +24,7 @@ GEMINI_MODEL = "gemini-3.8-flash"
 PAPERS_PER_RUN = 30
 DOCS_DIR = Path("docs")
 PAPERS_JSON = DOCS_DIR / "papers.json"
+PAGES_URL = "https://yoichikawa12345.github.io/arxiv-digest/"
 
 SS_QUERIES = [
     "deep learning neural network",
@@ -378,6 +379,10 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
         {
             "type": "header",
             "text": {"type": "plain_text", "text": f"📚 AI論文まとめ 新着 — {date_str}"},
+        },
+        {
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": f"<{PAGES_URL}|📄 まとめページで全論文を見る>"}],
         },
         {"type": "divider"},
     ]
