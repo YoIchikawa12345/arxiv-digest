@@ -9,7 +9,7 @@ on:
 jobs:
   scholar-digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: write
 
