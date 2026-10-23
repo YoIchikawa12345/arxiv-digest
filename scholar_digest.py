@@ -37,12 +37,11 @@ SS_QUERIES = [
     "graph neural network",
 ]
 
-
 # ── Fetch ─────────────────────────────────────────────────────────────────────────────────
 
 def fetch_candidates(ss_api_key: str = "") -> list[dict]:
     """Semantic Scholar 検索APIで高影響力論文を取得し、引用数順で返す。
-    API key があればそれを使う。なければ非認証で試みる（レート制限あり）。"""
+    API key があればそれを使う。なしれば非認証で試みる（レート制限あり）。"""
     headers = {"x-api-key": ss_api_key} if ss_api_key else {}
     url = "https://api.semanticscholar.org/graph/v1/paper/search"
     fields = "paperId,title,abstract,citationCount,influentialCitationCount,year,externalIds"
@@ -102,19 +101,16 @@ def fetch_candidates(ss_api_key: str = "") -> list[dict]:
     print(f"  Total candidates: {len(papers)}, top influential={top.get('influentialCitationCount', 0)}: {top.get('title','')[:50]}")
     return papers
 
-
 def load_papers() -> list[dict]:
     if PAPERS_JSON.exists():
         return json.loads(PAPERS_JSON.read_text(encoding="utf-8-sig"))
     return []
-
 
 def save_papers(papers: list[dict]) -> None:
     DOCS_DIR.mkdir(exist_ok=True)
     PAPERS_JSON.write_text(
         json.dumps(papers, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-
 
 def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
     result = []
@@ -131,8 +127,7 @@ def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
 
 SUMMARIZE_BATCH = 10  # Gemini に一度に送る論文数
 
-
-def _summarize_batch(client, papers: list[dict]) -> list[str]:
+def _summarize_batch(client, papers: list[dict]) -> list[dict]:
     parts = [
         f"[{i}] {p['title']} ({p['year']})\n{p['abstract']}"
         for i, p in enumerate(papers)
@@ -140,19 +135,16 @@ def _summarize_batch(client, papers: list[dict]) -> list[str]:
     prompt = (
         "以下のAI・機械学習論文を、日本語でわかりやすく解説してください。\n"
         "対象読者はAIや機械学習をあまり知らない初心者です。\n\n"
-        "各論文について、以下の点を含めて4～6文程度で解説してください：\n"
-        "1. どんな課題・問題を解こうとしているか（背景）\n"
-        "2. どんな手法やアルゴリズムを使っているか（内容）\n"
-        "3. 実験でどんな結果が得られたか（成果）\n\n"
-        "注意事項：\n"
-        "- 「歴史的な論文」「分野を変えた」「金字塔」などの評価コメントは一切書かない\n"
-        "- 論文の社会的意義や影響の説明も不要\n"
-        "- 専門用語は必ずかっこ内で平易に説明する\n"
-        "- 初めて読む人が「何をしている論文か」をイメージできる具体的な表現を使う\n\n"
-        "必ず以下のJSON形式のみで回答:\n"
-        '{"0": "解説文", "1": "解説文", ...}\n\n'
+        "各論文につうください：\n"
+        "1. summary: 4～6文程度の解説（背景・手法・成果）\n"
+        "   - 「歴史的な論文」「分野を変えた」などの評価コメントは書かない\n"
+        "   - 初めて読　人がイャ#��ジできる具体的な表現を使う\n"
+        "2. terms: 論文中の重要な専門用語を3～5個ピックアップし、平易な日本語で1文ずつ解説\n\n"
+        "必せ以下のJSON形式のみで回答:\n"
+        '{"0": {"summary": "解説文", "terms": {"用語1": "説明", "用語2": "説明"}}, "1": {...}, ...}\n\n'
         + "\n\n".join(parts)
     )
+    empty: dict = {"summary": "", "terms": {}}
     for attempt in range(3):
         try:
             resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
@@ -160,16 +152,15 @@ def _summarize_batch(client, papers: list[dict]) -> list[str]:
             m = re.search(r'\{[\s\S]*\}', raw)
             if m:
                 data = json.loads(m.group())
-                return [data.get(str(i), "") for i in range(len(papers))]
+                return [data.get(str(i), empty) for i in range(len(papers))]
         except Exception as e:
             if attempt == 2:
                 print(f"  Gemini error: {e}")
-                return [""] * len(papers)
+                return [empty] * len(papers)
             time.sleep(30 * (attempt + 1))
-    return [""] * len(papers)
+    return [empty] * len(papers)
 
-
-def summarize(api_key: str, papers: list[dict]) -> list[str]:
+def summarize(api_key: str, papers: list[dict]) -> list[dict]:
     client = genai.Client(api_key=api_key)
     results = []
     for i in range(0, len(papers), SUMMARIZE_BATCH):
@@ -179,7 +170,6 @@ def summarize(api_key: str, papers: list[dict]) -> list[str]:
         if i + SUMMARIZE_BATCH < len(papers):
             time.sleep(5)
     return results
-
 
 # ── HTML ─────────────────────────────────────────────────────────────────────────────────────
 
@@ -258,6 +248,11 @@ body{{
 .card-title a{{color:var(--link);text-decoration:none}}
 .card-title a:hover{{text-decoration:underline}}
 .card-summary{{margin:0;font-size:14px;color:var(--fg2);line-height:1.7}}
+.card-terms{{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}}
+.card-terms-label{{font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}}
+.card-terms dl{{margin:0;display:flex;flex-direction:column;gap:3px}}
+.card-terms dt{{font-size:12px;font-weight:700;color:var(--accent);display:inline}}
+.card-terms dd{{font-size:12px;color:var(--fg2);margin:0;display:inline}}
 .no-results{{text-align:center;padding:64px 0;color:var(--fg3)}}
 .loading{{text-align:center;padding:40px 0;color:var(--fg3)}}
 </style>
@@ -339,6 +334,12 @@ body{{
     var html = '';
     for (var j = 0; j < slice.length; j++) {{
       var p = slice[j], c = getCat(p), label = CAT_LABELS[c] || c;
+      var terms = p.terms || {{}}, termKeys = Object.keys(terms), termsHtml = '';
+      if (termKeys.length) {{
+        termsHtml = '<div class="card-terms"><div class="card-terms-label">📖 用語解説</div><dl>' +
+          termKeys.map(function(k) {{ return '<dt>' + esc(k) + '</dt><dd>: ' + esc(terms[k]) + '</dd>'; }}).join('') +
+          '</dl></div>';
+      }}
       html += '<article class="card">' +
         '<div class="card-meta">' +
         '<span class="date">📅 ' + esc(p.published||p.year||'') + '</span>' +
@@ -347,6 +348,7 @@ body{{
         '</div>' +
         '<h2 class="card-title"><a href="' + esc(p.url||'#') + '" target="_blank" rel="noopener">' + esc(p.title||'') + '</a></h2>' +
         '<p class="card-summary">' + esc(p.summary||'（要約なし）') + '</p>' +
+        termsHtml +
         '</article>';
     }}
     document.getElementById('cards').innerHTML = html;
@@ -371,10 +373,10 @@ body{{
 </body>
 </html>"""
 
-# ── Slack ──────────────────────────────────────────────────────────────────────────────────
+# ── Slack ─────────────────────────────────────────────────────────────────────────────────
 
 def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
-    date_str = datetime.now(JST).strftime("%Y年%m月%d日")
+    date_str = datetime.now(JST).strftime("%Y噴%m月%d日")
     blocks = [
         {
             "type": "header",
@@ -409,8 +411,6 @@ def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
     resp.raise_for_status()
     print("Slack post OK.")
 
-
-
 # ── Main ──────────────────────────────────────────────────────────────────────────────────
 
 def main():
@@ -439,7 +439,8 @@ def main():
 
     today = datetime.now(JST).strftime("%Y-%m-%d")
     for p, s in zip(new_papers, summaries):
-        p["summary"] = s
+        p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
+        p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
         p["addedDate"] = today
         del p["abstract"]
 
@@ -458,7 +459,6 @@ def main():
             print(f"Slack post failed (non-fatal): {e}")
     else:
         print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
-
 
 if __name__ == "__main__":
     main()
