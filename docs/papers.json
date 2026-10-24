@@ -1,1 +1,600 @@
-[]
+[
+  {
+    "paperId": "2c03df8b48bf3fa39054345bafabfeff15bfd11d",
+    "arxivId": "1512.03385",
+    "title": "Deep Residual Learning for Image Recognition",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 243109,
+    "influentialCitationCount": 33150,
+    "url": "https://arxiv.org/abs/1512.03385",
+    "summary": "AIが画像を認識する際、層を何十層も深く重ねるほど賢くなると期待されていましたが、実際には深すぎると学習がうまく進まなくなる問題がありました。この論文では、入力をそのまま次の層へ飛び越えて足し合わせる「スキップ接続」という仕組みを取り入れた「残差ネットワーク（ResNet）」を提案しました。層の出力そのものをゼロから学習するのではなく、入力との差分（残差）だけを学習することで、信号が奥の層までスムーズに届くようになります。この工夫により、従来の限界を大幅に超える100層以上の非常に深いネットワークでも安定して学習できるようになりました。その結果、画像認識コンペティションで誤り率を大幅に低下させ、複雑な画像でも正確に見分けられる性能を達成しました。",
+    "terms": {
+      "残差学習": "ゼロからすべてを覚え直すのではなく、元の入力情報と目標の出力情報との「差額（ズレ）」だけを学ぶ仕組みです。",
+      "スキップ接続": "途中の処理を飛ばして、手前の層のデータをそのまま奥の層に足し合わせるバイパスのような経路のことです。",
+      "勾配消失問題": "ネットワークが深くなりすぎると、学習のための修正指示（勾配）が途中で弱まり、入り口付近の層が学習できなくなる現象です。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathbf{y} = \\mathcal{F}(\\mathbf{x}, \\{W_i\\}) + \\mathbf{x}",
+        "meaning": "入力 $\\mathbf{x}$ に対し、層で学習した変化分 $\\mathcal{F}$ を計算したあと、元の入力 $\\mathbf{x}$ をそのまま足して最終出力 $\\mathbf{y}$ とする計算式です。"
+      },
+      {
+        "expression": "\\mathcal{F} = W_2 \\sigma(W_1 \\mathbf{x})",
+        "meaning": "入力データに対して2回の重み付け変換と活性化関数 $\\sigma$ を行い、差分となる特徴を抽出する処理を表しています。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "eb42cf88027de515750f230b23b1a057dc782108",
+    "arxivId": "1409.1556",
+    "title": "Very Deep Convolutional Networks for Large-Scale Image Recognition",
+    "year": 2014,
+    "published": "2014",
+    "categories": [],
+    "citationCount": 115096,
+    "influentialCitationCount": 14721,
+    "url": "https://arxiv.org/abs/1409.1556",
+    "summary": "コンピュータに写真の内容を理解させる畳み込みニューラルネットワーク（CNN）において、層の深さが認識性能にどれほど影響を与えるかは明確ではありませんでした。研究チームは、従来使われていた大きな受容野ではなく、$3\\times 3$ というごく小さな正方形のフィルターを一貫して積み重ねる手法を試しました。小さなフィルターを何枚も重ねることで、計算量を抑えつつ、広い範囲を見渡す大きなフィルターと同じ効果を得られるようにしています。この方針でネットワークの深さを16層から19層まで増やした「VGG」と呼ばれるモデルを開発しました。実験の結果、層を深くするほど画像の細かな模様から全体像までを段階的に捉えられるようになり、画像分類の正解率が大きく向上しました。",
+    "terms": {
+      "畳み込みフィルター": "画像の上をマス目状に滑らせながら、輪郭や色合いなどの特徴を拾い出す小さな計算窓のことです。",
+      "層の深さ": "画像から特徴を抽出して判断を下すまでに、計算を何段階積み重ねているかを表す回数のことです。",
+      "プーリング": "画像の特徴を保ったまま画像サイズを縮小し、計算量を減らして位置のズレに強くする処理です。"
+    },
+    "formulas": [
+      {
+        "expression": "3 \\times 3",
+        "meaning": "画像から特徴を取り出すフィルターの縦横のサイズであり、上下左右の中心を特定できる最小の正方形サイズを示しています。"
+      },
+      {
+        "expression": "D = 16 \\text{ or } 19",
+        "meaning": "VGGモデルで重み（学習すべきパラメータ）を持つ畳み込み層と全結合層の合計の深さ（層数）を表しています。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "268d347e8a55b5eb82fb5e7d2f800e33c75ab18a",
+    "arxivId": "2010.11929",
+    "title": "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 72293,
+    "influentialCitationCount": 7661,
+    "url": "https://arxiv.org/abs/2010.11929",
+    "summary": "文章の翻訳などで高い成果を出していた「Transformer」という仕組みは、画像の処理では補助的な役割にとどまっていました。この研究では、画像分野で定番だった畳み込み処理を使わず、Transformerだけで画像を分類する手法「Vision Transformer（ViT）」を提案しました。この手法では、1枚の画像を $16\\times 16$ ピクセルなどの小さな正方形のパッチに細かく切り分け、それらを文章の単語のように並べて扱います。パッチ同士が画像全体のどこに関連しているかを同時に見比べながら、重要な部分に自動で注目して理解を深めます。大量の画像データを使って事前学習を行うことで、従来の画像認識モデルと同等以上の高い認識精度を出すことに成功しました。",
+    "terms": {
+      "画像パッチ": "1枚の画像をモザイクのように均等な正方形で小さく切り分けた、1つひとつの画像片のことです。",
+      "自己注意機構": "データのどの部分同士が強く関係しているかを、文脈や全体像に合わせて重み付けして見極める仕組みです。",
+      "事前学習": "特定の目的を決める前に、膨大なデータを使って一般的な特徴や知識をあらかじめ学ばせておく準備段階のことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathbf{z}_0 = [\\mathbf{x}_{\\text{class}}; \\mathbf{x}_p^1 \\mathbf{E}; \\dots; \\mathbf{x}_p^N \\mathbf{E}] + \\mathbf{E}_{\\text{pos}}",
+        "meaning": "切り分けた画像パッチ $\\mathbf{x}_p$ を数値列に変換し、位置情報 $\\mathbf{E}_{\\text{pos}}$ と分類専用の記号 $\\mathbf{x}_{\\text{class}}$ を足し合わせてモデルの入力とする式です。"
+      },
+      {
+        "expression": "N = HW / P^2",
+        "meaning": "画像の縦 $H$ と横 $W$ をパッチのサイズ $P$ で割り算し、画像全体がいくつのパッチ $N$ に分割されるかを計算する式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "7aa38b85fa8cba64d6a4010543f6695dbf5f1386",
+    "arxivId": "1706.06083",
+    "title": "Towards Deep Learning Models Resistant to Adversarial Attacks",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 15922,
+    "influentialCitationCount": 4015,
+    "url": "https://arxiv.org/abs/1706.06083",
+    "summary": "画像認識AIは、人間には気づけないほどわずかなノイズを画像に加えられるだけで、誤った判定をしてしまう脆さを持っています。この論文では、そうした騙し画像（敵対的サンプル）に対抗し、安全で頑丈なAIモデルを作るための統一的な枠組みを研究しました。問題の核心を「攻撃側はモデルの誤りを最大化するノイズを探し、防御側はその最悪のノイズが加わっても正解できるように学習する」という一種のゲームとして捉え直しました。最強の攻撃手法として「PGD攻撃」を定義し、その攻撃によって作られた画像を学習データに混ぜて訓練する手法を確立しました。この学習を行うことで、未知の巧妙な騙し攻撃に対しても簡単には惑わされない頑健なモデルが作れることを実証しました。",
+    "terms": {
+      "敵対的サンプル": "人間には元のデータと区別がつかないが、AIを意図的に誤認させる細工が加えられたデータのことです。",
+      "敵対的訓練": "学習の段階でAIを騙すような細工データをわざと生成し、それを正しく見破る練習を繰り返す防御手法です。",
+      "摂動": "元データに対して加えられる、目に見えないほどわずかなノイズやズレのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\min_\\theta \\mathbb{E}_{(x, y) \\sim \\mathcal{D}} \\left[ \\max_{\\delta \\in S} L(\\theta, x + \\delta, y) \\right]",
+        "meaning": "許されたノイズ $\\delta$ の範囲内でAIの誤りを最大化（攻撃）し、その状態でも損失 $L$ が最小になるようパラメータ $\\theta$ を更新（防御）する目標式です。"
+      },
+      {
+        "expression": "x^{t+1} = \\Pi_{x + S} \\left( x^t + \\alpha \\,\\mathrm{sgn}(\\nabla_x L(\\theta, x^t, y)) \\right)",
+        "meaning": "画像の勾配の向きに沿って少しずつノイズを足していき、制限範囲 $S$ 内に収まるよう投影しながら強力な攻撃画像を反復生成する計算式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "2e62d1345b340d5fda3b092c460264b9543bc4b5",
+    "arxivId": "",
+    "title": "Genetic Algorithms in Search Optimization and Machine Learning",
+    "year": 1988,
+    "published": "1988",
+    "categories": [],
+    "citationCount": 61614,
+    "influentialCitationCount": 3603,
+    "url": "https://www.semanticscholar.org/paper/2e62d1345b340d5fda3b092c460264b9543bc4b5",
+    "summary": "複雑な問題から最も良い答えを探し出す際、条件が多すぎると従来の計算手法では解を見つけることが困難になります。この研究書は、生物の進化や自然淘汰の仕組みをコンピュータの探索や機械学習に応用する「遺伝的アルゴリズム（GA）」の基本体系を解説しています。候補となる解を「生物の遺伝子」に見立て、多数の解の集まり（個体群）をコンピュータ内で世代交代させていきます。成績の良い解を残す「選択」、2つの解の情報を混ぜ合わせる「交叉」、確率で突然変異を起こす「変異」という3つの操作を繰り返します。これにより、局所的な罠に捕まることなく、広大な探索空間から実用的な最適解を効率よく見つけ出す仕組みを確立しました。",
+    "terms": {
+      "遺伝子型": "解の候補を0と1の並びや記号の配列としてコンピュータ上に表現したデータのことです。",
+      "適応度": "ある解が問題の条件をどれくらい満たしているか、優秀さを数値化した点数のことです。",
+      "交叉": "親となる2つの優れた解を途中で切り離してつなぎ合わせ、新しい子供の解を作る操作です。"
+    },
+    "formulas": [
+      {
+        "expression": "P(i) = \\frac{f_i}{\\sum_{j=1}^N f_j}",
+        "meaning": "個体 $i$ の適応度 $f_i$ を全体の合計で割ることで、優秀な個体ほど次の世代に選ばれやすくなる確率を計算する式です。"
+      },
+      {
+        "expression": "m(H, t+1) \\ge m(H, t) \\frac{f(H)}{\\bar{f}} [1 - p_c \\dots - p_m \\dots]",
+        "meaning": "優れた特徴パターン（スキーマ $H$）を持つ解が、世代 $t$ を経るごとに集団内で指数関数的に増えていく様子を示すスキーマ定理の式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "a8ca46b171467ceb2d7652fbfb67fe701ad86092",
+    "arxivId": "2106.09685",
+    "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 24779,
+    "influentialCitationCount": 3436,
+    "url": "https://arxiv.org/abs/2106.09685",
+    "summary": "近年の巨大な言語モデルは非常に賢い反面、特定の用途に合わせて調整（ファインチューニング）しようとすると、莫大な計算コストと保存容量が必要になります。この論文では、元のモデルの重みを一切変更せずに凍結し、追加の小さなパーツだけを学習させる「LoRA（低ランク適応）」を提案しました。モデル内の巨大な行列の更新幅を、細長い2つの小さな行列の掛け算に分解して表現することで、学習が必要なパラメータ数を数万分の一に削減します。推論時には、学習した小さな行列の積を元の重みに足し戻すだけでよいため、処理速度が遅くなることもありません。これにより、一般のパソコンに近い環境でも、巨大言語モデルを効率的かつ高精度にカスタマイズできるようになりました。",
+    "terms": {
+      "ファインチューニング": "すでに学習を終えた汎用的なモデルに対し、特定のタスク用データを追加で学ばせて専門性を高める作業です。",
+      "パラメータ": "AIモデルが予測を行うために内部で保持している、学習によって調整される数値（重み）のことです。",
+      "低ランク行列分解": "巨大な表（行列）を、情報の特徴を凝縮した細長い2つの小さな表の掛け算に近似して表現する数学的な手法です。"
+    },
+    "formulas": [
+      {
+        "expression": "h = W_0 x + \\Delta W x = W_0 x + \\frac{\\alpha}{r} B A x",
+        "meaning": "元の固定された重み $W_0$ による計算に、低ランクに分解した2つの小さな行列 $B$ と $A$ による変化分を足し合わせて出力を得る計算式です。"
+      },
+      {
+        "expression": "\\Delta W = B A, \\quad B \\in \\mathbb{R}^{d \\times r}, A \\in \\mathbb{R}^{r \\times k} \\quad (r \\ll \\min(d, k))",
+        "meaning": "大きな変化幅 $\\Delta W$ を、ごく小さな内部次元 $r$ を持つ2つの行列の積として表現することを表しています。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "d997beefc0922d97202789d2ac307c55c2c52fba",
+    "arxivId": "1612.00593",
+    "title": "PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation",
+    "year": 2016,
+    "published": "2016",
+    "categories": [],
+    "citationCount": 18867,
+    "influentialCitationCount": 3343,
+    "url": "https://arxiv.org/abs/1612.00593",
+    "summary": "自動運転のセンサーなどで得られる3次元データは「点群」と呼ばれ、空間上に散らばる不規則な点の集まりとして記録されます。従来の深層学習モデルは規則正しいマス目状のデータを好むため、点群を一度3次元グリッドや2D画像に変換して処理していましたが、計算量が膨大になる欠点がありました。PointNetは、点の並び順が入れ替わっても結果が変わらない性質（対称性）を保ちながら、生の3次元座標を直接入力して処理するネットワークです。各点ごとに独立して特徴を抽出したあと、「最大値プーリング」という操作で点群全体を代表する1つの特徴ベクトルをまとめ上げます。この工夫により、物体の向きのズレに強く、3D物体の分類や各パーツの切り分け（セグメンテーション）を高速かつ高精度に行えるようになりました。",
+    "terms": {
+      "点群": "物体の表面をレーザーなどで計測した、3次元空間上の無数の点 $(x, y, z)$ の集まりのことです。",
+      "置換不変性": "入力されるデータの並び順がランダムに入れ替わっても、AIの出力結果が変化しない性質のことです。",
+      "セグメンテーション": "データ内のどの部分がテーブルの脚や飛行機の翼であるかなど、構成パーツごとに細かくラベル付けする作業です。"
+    },
+    "formulas": [
+      {
+        "expression": "f(\\{x_1, \\dots, x_n\\}) \\approx g(h(x_1), \\dots, h(x_n))",
+        "meaning": "各点 $x_i$ を関数 $h$ で別々に処理したあと、順序に依存しない共通関数 $g$（最大値プーリングなど）で集約する基本構造を表しています。"
+      },
+      {
+        "expression": "g = \\max_{i=1,\\dots,n}",
+        "meaning": "全点の特徴量の中から各次元の最大値を取り出すことで、点の入力順序がどう変わっても同一の全体特徴を得る操作です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "024006d4c2a89f7acacc6e4438d156525b60a98f",
+    "arxivId": "1509.02971",
+    "title": "Continuous control with deep reinforcement learning",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 16273,
+    "influentialCitationCount": 2254,
+    "url": "https://arxiv.org/abs/1509.02971",
+    "summary": "ゲームの画面操作などを自ら試行錯誤して学ぶ強化学習は成果を上げていましたが、「右にハンドルを32.5度切る」といった無段階で滑らかな動作（連続値制御）の学習は苦手でした。この研究では、行動を決める役（Actor）と、その行動の良し悪しを評価する役（Critic）にAIを分ける「DDPG」という手法を提案しました。物理シミュレータ上で車を運転させたり、ロボットの関節を滑らかに動かしたりするような連続的な操作を直接学習できます。過去の行動履歴を記憶庫に保存してランダムに取り出し再利用する技術や、学習のブレを抑える目標ネットワークを組み込みました。これにより、車台の上で棒をバランス良く立たせる制御や歩行運動など、20種類以上の複雑な物理タスクを安定して習得できるようになりました。",
+    "terms": {
+      "強化学習": "AIが環境の中で自ら行動を起こし、成功に応じた「報酬」を最大化するように試行錯誤を繰り返して上達する学習法です。",
+      "連続アクション空間": "「ボタンを押す／押さない」といった離散的な選択ではなく、アクセル開度や角度のように連続した数値で指示を出す動作領域のことです。",
+      "経験再生": "過去に体験した「状態・行動・報酬」の組み合わせをメモリに保存しておき、シャッフルして学習に使うことで偏りを防ぐ手法です。"
+    },
+    "formulas": [
+      {
+        "expression": "Q(s, a) = \\mathbb{E} \\left[ r(s, a) + \\gamma Q(s', \\mu(s')) \\right]",
+        "meaning": "現在の状態 $s$ で行動 $a$ を取ったときの価値 $Q$ は、即座にもらえる報酬 $r$ と、次の状態 $s'$ での方針 $\\mu$ による将来の期待価値の合計になるという式です。"
+      },
+      {
+        "expression": "\\nabla_{\\theta^\\mu} J \\approx \\mathbb{E} \\left[ \\nabla_a Q(s, a|\\theta^Q)|_{a=\\mu(s)} \\nabla_{\\theta^\\mu} \\mu(s|\\theta^\\mu) \\right]",
+        "meaning": "行動の価値を高めるために、評価役（Critic）の評価が良くなる方向へと行動役（Actor）のパラメータ $\\theta^\\mu$ を更新する勾配計算式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "6351ebb4a3287f5f3e1273464b3b91e5df5a16d7",
+    "arxivId": "2111.06377",
+    "title": "Masked Autoencoders Are Scalable Vision Learners",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 13299,
+    "influentialCitationCount": 2168,
+    "url": "https://arxiv.org/abs/2111.06377",
+    "summary": "文章モデルでは「文章の一部を穴埋め問題にして解かせる」手法で高い効果が出ていましたが、画像では画素同士の情報が似通っているため同様の手法は難しいと考えられていました。この研究では、画像をパッチに切り分けたあと、そのうち約75％という大部分を黒塗りに隠して残りの部分を復元させる「Masked Autoencoder（MAE）」を開発しました。見える部分（25％）のパッチだけを計算量の重いエンコーダで処理し、隠された部分には軽いデコーダを使って元のピクセルを再構築させます。無駄な計算を大幅に省けるため、非常に大きな画像認識モデルでも高速かつ効率的に学習を進めることが可能になりました。この穴埋め学習を終えたモデルは、画像全体の構造や物体の概念をしっかりと捉えられるようになり、様々な画像タスクで高い精度を発揮しました。",
+    "terms": {
+      "自己教師あり学習": "人間が正解ラベル（答え）を1枚ずつ手作業でつけなくても、データ自身の一部を隠して予測させることで自律的に賢くなる学習法です。",
+      "エンコーダ": "入力データから本質的な特徴をギュッと圧縮して取り出す変換役のネットワークです。",
+      "デコーダ": "圧縮された特徴や限られた手がかりをもとにして、元の完全な画像データを復元する復号役のネットワークです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\text{Mask Ratio} \\approx 75\\%",
+        "meaning": "入力画像のパッチのうち約4分の3を覆い隠し、冗長な情報を減らして難度の高い復元タスクを課す設定比率です。"
+      },
+      {
+        "expression": "L = \\frac{1}{|M|} \\sum_{i \\in M} |x_i - \\hat{x}_i|^2",
+        "meaning": "マスクで隠された領域 $M$ についてのみ、元のピクセル値 $x_i$ と復元された値 $\\hat{x}_i$ の二乗誤差を計算して学習の指針とする損失関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "811df72e210e20de99719539505da54762a11c6d",
+    "arxivId": "1801.01290",
+    "title": "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor",
+    "year": 2018,
+    "published": "2018",
+    "categories": [],
+    "citationCount": 12792,
+    "influentialCitationCount": 2161,
+    "url": "https://arxiv.org/abs/1801.01290",
+    "summary": "ロボットなどの複雑な制御を深層強化学習で解こうとすると、学習が不安定で失敗しやすかったり、膨大な試行回数が必要になったりする課題がありました。この論文では、目標を達成して高い点数を得るだけでなく、「できるだけ予測のつかない多様な行動を保つ（エントロピーを最大化する）」ことを目指す「Soft Actor-Critic（SAC）」を提案しました。1つの最適行動だけに過剰に固執せず、様々な動きをバランスよく試すようになるため、予期せぬ落とし穴を避けながら安定して学習が進みます。また、過去に得たすべての経験データを無駄なく再利用できる仕組みを備えています。このアプローチにより、手動での細かなパラメータ調整を減らしつつ、ロボットの脚による歩行など高度なタスクを素早くスムーズに習得できるようになりました。",
+    "terms": {
+      "エントロピー": "行動の「予測のつきにくさ」や「ばらつき具合（多様性）」を表す尺度で、値が大きいほど様々な選択肢を試している状態を意味します。",
+      "オフポリシー": "現在学習中の最新の行動方針だけでなく、過去に試した異なる方針から得られた古い経験データも捨てずに再利用できる学習の形式です。",
+      "確率的方策": "ある状況で常に同じ行動を1つだけ選ぶのではなく、「行動Aを70％、行動Bを30％」のように確率の幅を持たせて選択する方針のことです。"
+    },
+    "formulas": [
+      {
+        "expression": "J(\\pi) = \\sum_{t=0}^T \\mathbb{E}_{(s_t, a_t)} \\left[ r(s_t, a_t) + \\alpha \\mathcal{H}(\\pi(\\cdot|s_t)) \\right]",
+        "meaning": "将来得られる報酬の合計 $r$ に加え、方策の多様性を表すエントロピー $\\mathcal{H}$ に係数 $\\alpha$ を掛けた値を最大化する目的関数です。"
+      },
+      {
+        "expression": "\\mathcal{H}(\\pi(\\cdot|s_t)) = - \\int_A \\pi(a|s_t) \\log \\pi(a|s_t) \\, da",
+        "meaning": "現在の状態 $s_t$ において行動方針 $\\pi$ がどれだけランダムで多様な選択肢を持っているかを算出するエントロピーの定義式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "5b6ec746d309b165f9f9def873a2375b6fb40f3d",
+    "arxivId": "1610.02357",
+    "title": "Xception: Deep Learning with Depthwise Separable Convolutions",
+    "year": 2016,
+    "published": "2016",
+    "categories": [],
+    "citationCount": 18748,
+    "influentialCitationCount": 1984,
+    "url": "https://arxiv.org/abs/1610.02357",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "f35de4f9b1a7c4d3fa96a0d2ab1bf8937671f6b6",
+    "arxivId": "1506.02142",
+    "title": "Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 13320,
+    "influentialCitationCount": 1759,
+    "url": "https://arxiv.org/abs/1506.02142",
+    "summary": "深層学習は高い精度で予測を行える一方で、その予測に対してAI自身がどれくらい自信を持っているかという「不確実性」を把握することが苦手でした。確信度を正しく測る手法としてベイズ統計学に基づくモデルがありますが、計算量が膨大で実用的ではないという問題がありました。そこで本論文では、モデルの過学習を防ぐためによく使われる「ドロップアウト」という既存の技術を、予測時にも複数回実行する手法を提案しました。これにより、ドロップアウトをベイズ計算の近似として数学的に位置づけ、追加の計算コストをかけずに予測のばらつきから不確実性を導き出せるようにしました。画像認識や強化学習などの実験を通して、予測精度の高さを維持したまま、AIの判断の迷いを正しく数値化できることを実証しました。",
+    "terms": {
+      "ドロップアウト": "学習中に一部のニューロン（計算の結び目）をランダムに無効化することで、特定のパターンに過度に依存するのを防ぐ手法です。",
+      "不確実性（モデルの不確実性）": "AIが下した予測に対して、どの程度迷いや自信のなさがあるかを表す指標です。",
+      "ベイズ推定": "手に入ったデータをもとに、ある事象が起こる確率を段階的に更新して推測する統計的な手法です。",
+      "ガウス過程": "無数のデータ点間の関係性を確率的な関数の集まりとして捉え、予測とそのばらつきを同時に扱える数学モデルです。"
+    },
+    "formulas": [
+      {
+        "expression": "z_{i, j} \\sim \\text{Bernoulli}(p_i)",
+        "meaning": "各層のニューロンを残すか無効化するかを、コイン投げのように確率 $p_i$ で決めるベルヌーイ分布を表しています。"
+      },
+      {
+        "expression": "\\mathbb{E}[y^*] \\approx \\frac{1}{T} \\sum_{t=1}^T \\hat{y}^*_t",
+        "meaning": "テスト時にもドロップアウトを適用して $T$ 回予測を行い、その平均値を最終的な予測結果とすることを表しています。"
+      },
+      {
+        "expression": "\\text{Var}(y^*) \\approx \\tau^{-1} I + \\frac{1}{T} \\sum_{t=1}^T (\\hat{y}^*_t)^T \\hat{y}^*_t - (\\mathbb{E}[y^*])^T \\mathbb{E}[y^*]",
+        "meaning": "複数回行った予測値のばらつき（分散）を計算することで、AIの予測に対する不確実性を数値化する式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "3f5b31c4f7350dc88002c121aecbdc82f86eb5bb",
+    "arxivId": "2301.12597",
+    "title": "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models",
+    "year": 2023,
+    "published": "2023",
+    "categories": [],
+    "citationCount": 9604,
+    "influentialCitationCount": 1026,
+    "url": "https://arxiv.org/abs/2301.12597",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "f04df4e20a18358ea2f689b4c129781628ef7fc1",
+    "arxivId": "1508.05326",
+    "title": "A large annotated corpus for learning natural language inference",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 4878,
+    "influentialCitationCount": 932,
+    "url": "https://arxiv.org/abs/1508.05326",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "642d0f49b7826adcf986616f4af77e736229990f",
+    "arxivId": "1510.00149",
+    "title": "Deep Compression: Compressing Deep Neural Network with Pruning, Trained Quantization and Huffman Coding",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 10594,
+    "influentialCitationCount": 931,
+    "url": "https://arxiv.org/abs/1510.00149",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "d0611891b9e8a7c5731146097b6f201578f47b2f",
+    "arxivId": "1707.07012",
+    "title": "Learning Transferable Architectures for Scalable Image Recognition",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 6317,
+    "influentialCitationCount": 887,
+    "url": "https://arxiv.org/abs/1707.07012",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "9ba0186ed40656329c421f55ada7313293e13f17",
+    "arxivId": "",
+    "title": "Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 4730,
+    "influentialCitationCount": 882,
+    "url": "https://www.semanticscholar.org/paper/9ba0186ed40656329c421f55ada7313293e13f17",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "0504945cc2d03550fecb6ff02e637f9421107c25",
+    "arxivId": "",
+    "title": "Learning a Deep Convolutional Network for Image Super-Resolution",
+    "year": 2014,
+    "published": "2014",
+    "categories": [],
+    "citationCount": 5854,
+    "influentialCitationCount": 754,
+    "url": "https://www.semanticscholar.org/paper/0504945cc2d03550fecb6ff02e637f9421107c25",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "2f5102ec3f70d0dea98c957cc2cab4d15d83a2da",
+    "arxivId": "",
+    "title": "The Stanford CoreNLP Natural Language Processing Toolkit",
+    "year": 2014,
+    "published": "2014",
+    "categories": [],
+    "citationCount": 7704,
+    "influentialCitationCount": 749,
+    "url": "https://www.semanticscholar.org/paper/2f5102ec3f70d0dea98c957cc2cab4d15d83a2da",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "a20f0ce0616def7cc9a87446c228906cd5da093b",
+    "arxivId": "",
+    "title": "Policy Gradient Methods for Reinforcement Learning with Function Approximation",
+    "year": 1999,
+    "published": "1999",
+    "categories": [],
+    "citationCount": 8025,
+    "influentialCitationCount": 670,
+    "url": "https://www.semanticscholar.org/paper/a20f0ce0616def7cc9a87446c228906cd5da093b",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "28db20a81eec74a50204686c3cf796c42a020d2e",
+    "arxivId": "2006.04779",
+    "title": "Conservative Q-Learning for Offline Reinforcement Learning",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 2951,
+    "influentialCitationCount": 661,
+    "url": "https://arxiv.org/abs/2006.04779",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "72edcb3788f9c141a3ed28e6d36f75ca4977d27e",
+    "arxivId": "1709.04875",
+    "title": "Spatio-temporal Graph Convolutional Neural Network: A Deep Learning Framework for Traffic Forecasting",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 5642,
+    "influentialCitationCount": 658,
+    "url": "https://arxiv.org/abs/1709.04875",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "bc1022b031dc6c7019696492e8116598097a8c12",
+    "arxivId": "1103.0398",
+    "title": "Natural Language Processing (Almost) from Scratch",
+    "year": 2011,
+    "published": "2011",
+    "categories": [],
+    "citationCount": 7974,
+    "influentialCitationCount": 656,
+    "url": "https://arxiv.org/abs/1103.0398",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "2e2089ae76fe914706e6fa90081a79c8fe01611e",
+    "arxivId": "1206.2944",
+    "title": "Practical Bayesian Optimization of Machine Learning Algorithms",
+    "year": 2012,
+    "published": "2012",
+    "categories": [],
+    "citationCount": 10128,
+    "influentialCitationCount": 653,
+    "url": "https://arxiv.org/abs/1206.2944",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "a326d9f2d2d351001fece788165dbcbb524da2e4",
+    "arxivId": "2004.07219",
+    "title": "D4RL: Datasets for Deep Data-Driven Reinforcement Learning",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 1986,
+    "influentialCitationCount": 638,
+    "url": "https://arxiv.org/abs/2004.07219",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "65b16da51891a6b98140d425804c8a0fd0299219",
+    "arxivId": "1612.02177",
+    "title": "Deep Multi-scale Convolutional Neural Network for Dynamic Scene Deblurring",
+    "year": 2016,
+    "published": "2016",
+    "categories": [],
+    "citationCount": 2595,
+    "influentialCitationCount": 605,
+    "url": "https://arxiv.org/abs/1612.02177",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "f63e917638553414526a0cc8550de4ad2d83fe7a",
+    "arxivId": "1511.07289",
+    "title": "Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)",
+    "year": 2015,
+    "published": "2015",
+    "categories": [],
+    "citationCount": 6238,
+    "influentialCitationCount": 575,
+    "url": "https://arxiv.org/abs/1511.07289",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "13a0d8bb38f739990c8cd65a44061c6534f17221",
+    "arxivId": "2205.01068",
+    "title": "OPT: Open Pre-trained Transformer Language Models",
+    "year": 2022,
+    "published": "2022",
+    "categories": [],
+    "citationCount": 5066,
+    "influentialCitationCount": 540,
+    "url": "https://arxiv.org/abs/2205.01068",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "0286b2736a114198b25fb5553c671c33aed5d477",
+    "arxivId": "2204.05862",
+    "title": "Training a Helpful and Harmless Assistant with Reinforcement Learning from Human Feedback",
+    "year": 2022,
+    "published": "2022",
+    "categories": [],
+    "citationCount": 4425,
+    "influentialCitationCount": 529,
+    "url": "https://arxiv.org/abs/2204.05862",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "d21703674ae562bae4a849a75847cdd9ead417df",
+    "arxivId": "1606.04838",
+    "title": "Optimization Methods for Large-Scale Machine Learning",
+    "year": 2016,
+    "published": "2016",
+    "categories": [],
+    "citationCount": 4122,
+    "influentialCitationCount": 520,
+    "url": "https://arxiv.org/abs/1606.04838",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  }
+]
