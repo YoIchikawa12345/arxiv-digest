@@ -160,12 +160,13 @@ def _summarize_batch(client, papers: list[dict]) -> list[dict]:
         "1. summary: 4～6文程度の解説（背景・手法・成果）\n"
         "   - 「歴史的な論文」「分野を変えた」などの評価コメントは書かない\n"
         "   - 初めて読む人がイメージできる具体的な表現を使う\n"
-        "2. terms: 論文中の重要な専門用語を3～5個ピックアップし、平易な日本語で1文ずつ解説\n\n"
+        "2. terms: 論文中の重要な専門用語を3～5個ピックアップし、平易な日本語で1文ずつ解説\n"
+        "3. formulas: 論文中に登場する数式・記号を2～4個抽出し、それぞれ expression（LaTeX文字列）と meaning（1〜2文の平易な説明）をリストで返す。数式がなければ空リスト []\n\n"
         "必ず以下のJSON形式のみで回答:\n"
-        '{"0": {"summary": "解説文", "terms": {"用語1": "説明", "用語2": "説明"}}, "1": {...}, ...}\n\n'
+        '{"0": {"summary": "解説文", "terms": {"用語1": "説明"}, "formulas": [{"expression": "数式", "meaning": "説明"}]}, "1": {...}, ...}\n\n'
         + "\n\n".join(parts)
     )
-    empty: dict = {"summary": "", "terms": {}}
+    empty: dict = {"summary": "", "terms": {}, "formulas": []}
     for attempt in range(3):
         try:
             resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
@@ -277,6 +278,11 @@ body{{
 .card-terms dl{{margin:0;display:flex;flex-direction:column;gap:3px}}
 .card-terms dt{{font-size:12px;font-weight:700;color:var(--accent);display:inline}}
 .card-terms dd{{font-size:12px;color:var(--fg2);margin:0;display:inline}}
+.card-formulas{{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}}
+.card-formulas-label{{font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}}
+.formula-item{{margin-bottom:6px}}
+.formula-expr{{font-size:12px;font-family:monospace;color:var(--accent);font-weight:700;display:block;margin-bottom:2px}}
+.formula-meaning{{font-size:12px;color:var(--fg2)}}
 .no-results{{text-align:center;padding:64px 0;color:var(--fg3)}}
 .loading{{text-align:center;padding:40px 0;color:var(--fg3)}}
 .sort-bar{{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--fg3)}}
@@ -388,6 +394,14 @@ body{{
           termKeys.map(function(k) {{ return '<dt>' + esc(k) + '</dt><dd>: ' + esc(terms[k]) + '</dd>'; }}).join('') +
           '</dl></div>';
       }}
+      var formulas = p.formulas || [], formulasHtml = '';
+      if (formulas.length) {{
+        formulasHtml = '<div class="card-formulas"><div class="card-formulas-label">📐 数式解説</div>' +
+          formulas.map(function(f) {{
+            return '<div class="formula-item"><span class="formula-expr">' + esc(f.expression||'') + '</span>' +
+              '<span class="formula-meaning">' + esc(f.meaning||'') + '</span></div>';
+          }}).join('') + '</div>';
+      }}
       html += '<article class="card">' +
         '<div class="card-meta">' +
         '<span class="date">📅 ' + esc(p.published||p.year||'') + '</span>' +
@@ -397,6 +411,7 @@ body{{
         '<h2 class="card-title"><a href="' + esc(p.url||'#') + '" target="_blank" rel="noopener">' + esc(p.title||'') + '</a></h2>' +
         '<p class="card-summary">' + esc(p.summary||'（要約なし）') + '</p>' +
         termsHtml +
+        formulasHtml +
         '</article>';
     }}
     document.getElementById('cards').innerHTML = html;
@@ -494,6 +509,7 @@ def main():
             for p, s in zip(new_papers, summaries):
                 p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
                 p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
+                p["formulas"] = s.get("formulas", []) if isinstance(s, dict) else []
                 p["addedDate"] = today
                 del p["abstract"]
 
@@ -515,6 +531,7 @@ def main():
                 for p, s in zip(with_abstract, re_summaries):
                     p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
                     p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
+                    p["formulas"] = s.get("formulas", []) if isinstance(s, dict) else []
                 print(f"Re-summarized {len(with_abstract)} papers successfully.")
             except GeminiQuotaExceeded:
                 print("Quota exceeded during re-summarization, will retry next run.")
