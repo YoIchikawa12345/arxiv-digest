@@ -602,13 +602,14 @@ def main():
     (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
     print("docs/index.html generated.")
 
-    if webhook:
-        try:
-            post_to_slack(webhook, new_papers[:15])
-        except Exception as e:
-            print(f"Slack post failed (non-fatal): {e}")
-    else:
-        print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
+    if new_papers:
+        if webhook:
+            try:
+                post_to_slack(webhook, new_papers[:15])
+            except Exception as e:
+                print(f"Slack post failed (non-fatal): {e}")
+        else:
+            print("SLACK_WEBHOOK_URL not set, skipping Slack post.")
 
 if __name__ == "__main__":
     main()
