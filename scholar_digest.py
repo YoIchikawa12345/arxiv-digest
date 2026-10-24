@@ -141,7 +141,7 @@ def _summarize_batch(client, papers: list[dict]) -> list[dict]:
         "各論文について以下を返してください：\n"
         "1. summary: 4～6文程度の解説（背景・手法・成果）\n"
         "   - 「歴史的な論文」「分野を変えた」などの評価コメントは書かない\n"
-        "   - 初めて読　人がイメージできる具体的な表現を使う\n"
+        "   - 初めて読む人がイメージできる具体的な表現を使う\n"
         "2. terms: 論文中の重要な専門用語を3～5個ピックアップし、平易な日本語で1文ずつ解説\n\n"
         "必ず以下のJSON形式のみで回答:\n"
         '{"0": {"summary": "解説文", "terms": {"用語1": "説明", "用語2": "説明"}}, "1": {...}, ...}\n\n'
@@ -261,6 +261,13 @@ body{{
 .card-terms dd{{font-size:12px;color:var(--fg2);margin:0;display:inline}}
 .no-results{{text-align:center;padding:64px 0;color:var(--fg3)}}
 .loading{{text-align:center;padding:40px 0;color:var(--fg3)}}
+.sort-bar{{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--fg3)}}
+.sort-btn{{
+  padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--fg2);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:background .15s,color .15s;
+}}
+.sort-btn:hover,.sort-btn.active{{background:var(--accent);color:#fff;border-color:var(--accent)}}
 </style>
 </head>
 <body>
@@ -279,6 +286,11 @@ body{{
     <button class="tab" onclick="setTab(this,'cs.CL')">💬 自然言語処理</button>
     <button class="tab" onclick="setTab(this,'cs.CV')">🖼 画像・Vision</button>
   </div>
+  <div class="sort-bar">
+    <span>並び替え:</span>
+    <button class="sort-btn active" onclick="setSort(this,'date')">🆕 新しい順</button>
+    <button class="sort-btn" onclick="setSort(this,'cite')">📈 引用が多い順</button>
+  </div>
   <div class="top-bar">
     <span id="statsText"></span>
     <div class="pagination" id="paginTop"></div>
@@ -290,7 +302,7 @@ body{{
 </div>
 <script>
 (function() {{
-  var PER_PAGE = 10, page = 1, cat = 'all', q = '', PAPERS = [];
+  var PER_PAGE = 10, page = 1, cat = 'all', q = '', sortOrder = 'date', PAPERS = [];
   var CAT_LABELS = {{'cs.AI':'AI・推論','cs.LG':'機械学習','cs.CL':'自然言語処理','cs.CV':'画像・Vision'}};
   function getCat(p) {{
     var c = (p.categories || [])[0];
@@ -311,6 +323,18 @@ body{{
       return true;
     }});
   }}
+  function sorted(arr) {{
+    var a = arr.slice();
+    if (sortOrder === 'cite') {{
+      a.sort(function(x, y) {{ return (y.citationCount||0) - (x.citationCount||0); }});
+    }} else {{
+      a.sort(function(x, y) {{
+        var da = x.addedDate||x.published||'', db = y.addedDate||y.published||'';
+        return db > da ? 1 : db < da ? -1 : 0;
+      }});
+    }}
+    return a;
+  }}
   function renderPagin(total, id) {{
     var el = document.getElementById(id);
     var pages = Math.ceil(total / PER_PAGE);
@@ -327,7 +351,7 @@ body{{
     el.innerHTML = h;
   }}
   function render() {{
-    var f = filtered(), total = f.length;
+    var f = sorted(filtered()), total = f.length;
     var slice = f.slice((page-1)*PER_PAGE, page*PER_PAGE);
     document.getElementById('statsText').innerHTML =
       '<strong>' + total + '</strong> 件 / 全 <strong>' + PAPERS.length + '</strong> 件';
@@ -360,6 +384,11 @@ body{{
     document.getElementById('cards').innerHTML = html;
   }}
   window.go = function(n) {{ page = n; render(); window.scrollTo(0,0); }};
+  window.setSort = function(btn, s) {{
+    document.querySelectorAll('.sort-btn').forEach(function(t) {{ t.classList.remove('active'); }});
+    btn.classList.add('active');
+    sortOrder = s; page = 1; render();
+  }};
   window.setTab = function(btn, c) {{
     document.querySelectorAll('.tab').forEach(function(t) {{ t.classList.remove('active'); }});
     btn.classList.add('active');
@@ -382,7 +411,7 @@ body{{
 # ── Slack ──────────────────────────────────────────────────────────────────────────────────
 
 def post_to_slack(webhook_url: str, new_papers: list[dict]) -> None:
-    date_str = datetime.now(JST).strftime("%Y噴%m月%d日")
+    date_str = datetime.now(JST).strftime("%Y年%m月%d日")
     blocks = [
         {
             "type": "header",
