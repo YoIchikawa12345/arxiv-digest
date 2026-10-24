@@ -123,6 +123,24 @@ def pick_new(candidates: list[dict], sent_ids: set) -> list[dict]:
             break
     return result
 
+def _fetch_abstract(paper_id: str, ss_api_key: str = "") -> str:
+    """Semantic Scholar から abstract を再取得する（要約なし論文の修復用）。"""
+    if not paper_id:
+        return ""
+    headers = {"x-api-key": ss_api_key} if ss_api_key else {}
+    try:
+        resp = requests.get(
+            f"https://api.semanticscholar.org/graph/v1/paper/{paper_id}",
+            params={"fields": "abstract"},
+            headers=headers,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json().get("abstract") or ""
+    except Exception as e:
+        print(f"  Failed to fetch abstract for {paper_id}: {e}")
+        return ""
+
 # ── Summarize ─────────────────────────────────────────────────────────────────────────────
 
 SUMMARIZE_BATCH = 10  # Gemini に一度に送る論文数
@@ -464,26 +482,46 @@ def main():
     new_papers = pick_new(candidates, sent_ids)
     if not new_papers:
         print("No new papers to add.")
-        save_papers(existing)
-        html = generate_index_html(existing)
-        (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
-        return
-
-    print(f"Summarizing {len(new_papers)} new papers...")
-    try:
-        summaries = summarize(api_key, new_papers)
-    except GeminiQuotaExceeded as e:
-        print(f"Gemini quota exceeded, skipping update: {e}")
-        return
-
-    today = datetime.now(JST).strftime("%Y-%m-%d")
-    for p, s in zip(new_papers, summaries):
-        p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
-        p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
-        p["addedDate"] = today
-        del p["abstract"]
+    else:
+        print(f"Summarizing {len(new_papers)} new papers...")
+        try:
+            summaries = summarize(api_key, new_papers)
+        except GeminiQuotaExceeded as e:
+            print(f"Gemini quota exceeded, skipping new papers: {e}")
+            new_papers = []
+        else:
+            today = datetime.now(JST).strftime("%Y-%m-%d")
+            for p, s in zip(new_papers, summaries):
+                p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
+                p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
+                p["addedDate"] = today
+                del p["abstract"]
 
     all_papers = existing + new_papers
+
+    # Re-summarize existing papers with missing summaries (up to 5 per run)
+    unsummarized = [p for p in all_papers if not p.get("summary")][:5]
+    if unsummarized:
+        print(f"Re-fetching abstracts for {len(unsummarized)} papers missing summaries...")
+        for p in unsummarized:
+            abstract = _fetch_abstract(p.get("paperId", ""), ss_api_key)
+            if abstract:
+                p["abstract"] = abstract
+        with_abstract = [p for p in unsummarized if p.get("abstract")]
+        if with_abstract:
+            print(f"Re-summarizing {len(with_abstract)} papers...")
+            try:
+                re_summaries = summarize(api_key, with_abstract)
+                for p, s in zip(with_abstract, re_summaries):
+                    p["summary"] = s.get("summary", "") if isinstance(s, dict) else s
+                    p["terms"] = s.get("terms", {}) if isinstance(s, dict) else {}
+                print(f"Re-summarized {len(with_abstract)} papers successfully.")
+            except GeminiQuotaExceeded:
+                print("Quota exceeded during re-summarization, will retry next run.")
+            finally:
+                for p in with_abstract:
+                    p.pop("abstract", None)
+
     save_papers(all_papers)
     print(f"papers.json updated: {len(all_papers)} papers total.")
 
