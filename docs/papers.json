@@ -289,9 +289,23 @@
     "citationCount": 18748,
     "influentialCitationCount": 1984,
     "url": "https://arxiv.org/abs/1610.02357",
-    "summary": "",
-    "terms": {},
-    "formulas": [],
+    "summary": "画像認識を行うディープラーニングでは、画像の特徴を捉える「畳み込み」という計算が広く使われています。従来の計算手法では、画像の縦横の位置関係と色のチャンネル情報を同時にまとめて処理していたため、計算の無駄が多いという課題がありました。そこで本研究では、位置関係の処理（空間方向）と色の情報処理（チャンネル方向）を完全に分離して順番に行う「Depthwise Separable Convolution」を全面的に採用したネットワーク「Xception」を提案しました。この工夫により、モデルのサイズや計算量を増やすことなく、パラメータをより効率的に使えるようになりました。大規模な画像データセットを用いた実験において、従来モデルと同等のサイズでありながら、より高い画像分類の正解率を達成しました。",
+    "terms": {
+      "畳み込み（Convolution）": "画像の上で小さなフィルターを少しずつずらしながら重ね合わせ、輪郭や模様などの特徴を取り出す計算処理のことです。",
+      "Depthwise Separable Convolution": "画像の縦横方向の特徴抽出と、色などのチャンネル方向のまとめ上げを別々のステップに分けて計算する効率的な手法です。",
+      "Inceptionモジュール": "サイズの異なる複数のフィルターで同時に画像を処理して後から結果を合体させる、Googleが開発した画像認識の部品のことです。",
+      "パラメータ": "AIが訓練を通して自ら数値を調整し、画像のパターンを覚えるための内部の重み（設定値）のことです。"
+    },
+    "formulas": [
+      {
+        "expression": "K \\times K \\times C_{in} \\times C_{out}",
+        "meaning": "通常の畳み込みで必要となるパラメータ数（重みの総数）を表しており、フィルターサイズ（$K \\times K$）、入力チャンネル数（$C_{in}$）、出力チャンネル数（$C_{out}$）のすべてを掛け合わせた大きさになります。"
+      },
+      {
+        "expression": "K \\times K \\times C_{in} + C_{in} \\times C_{out}",
+        "meaning": "Xceptionが使う分離型の畳み込みで必要なパラメータ数であり、空間方向の計算とチャンネル方向の計算に分けることで、通常より大幅に数値を削減できることを示しています。"
+      }
+    ],
     "addedDate": "2026-10-24"
   },
   {
@@ -337,9 +351,27 @@
     "citationCount": 9604,
     "influentialCitationCount": 1026,
     "url": "https://arxiv.org/abs/2301.12597",
-    "summary": "",
-    "terms": {},
-    "formulas": [],
+    "summary": "画像とテキストの両方を理解できるAIを作るには、巨大なモデルを一から同時に学習させる必要があり、膨大な計算コストがかかっていました。本研究では、すでに賢く訓練された既存の「画像認識AI」と「文章生成AI」をそのまま固定（フリーズ）して活用する「BLIP-2」という手法を提案しました。二つのモデルを直接繋ぐのではなく、その間に「Q-Former」という小型の橋渡し役を配置し、二段階で効率的に情報を翻訳できるように学習させています。この方法により、学習に必要な計算量を大幅に削減しながら、質問応答や画像の説明文生成で非常に高い精度を記録しました。画像を見せながら自然な日本語や英語で指示を与えるだけで、的確に回答する能力も実現しています。",
+    "terms": {
+      "事前学習（Pre-training）": "特定の専門的な作業をさせる前に、大量のデータを使ってAIに基礎知識や一般的な特徴をあらかじめ学ばせておく訓練のことです。",
+      "大規模言語モデル（LLM）": "膨大なテキストデータを読み込むことで、人間のように自然な文章を理解したり生成したりできる巨大なAIのことです。",
+      "フリーズ（Frozen）": "AIの学習中に特定の部品の数値を書き換えずに固定し、余分な計算コストを抑えながらすでにある知識をそのまま利用することです。",
+      "Q-Former": "画像の持つ視覚的な情報を、言語モデルが理解しやすい言葉の表現へと変換・要約する小型の中継モジュールのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathcal{L}_{itc}",
+        "meaning": "画像とテキストの類似度を近づける対照学習の損失（誤差）を表し、関連する画像と説明文の特徴ベクトルが空間上で近くなるように誘導します。"
+      },
+      {
+        "expression": "\\mathcal{L}_{itm}",
+        "meaning": "画像とテキストのペアが本当に正しく一致しているかどうかを、AIが二値分類（合っている・合っていない）で判定する際の誤差を表します。"
+      },
+      {
+        "expression": "\\mathcal{L}_{itg}",
+        "meaning": "与えられた画像の特徴を手がかりにして、それに合致する説明テキストを一文字ずつ順番に生成していく際の予測誤差を表します。"
+      }
+    ],
     "addedDate": "2026-10-24"
   },
   {
@@ -1452,6 +1484,707 @@
       {
         "expression": "x_1 = x_0 + u_\\theta(x_0)",
         "meaning": "ノイズ $x_0$ に対し、モデルが予測した平均移動方向 $u_\\theta(x_0)$ を足し合わせるだけで、1回で完成画像 $x_1$ を生成する計算式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "347e837b1aa03c9d17c69a522929000f0a0f0a51",
+    "arxivId": "1911.11763",
+    "title": "SuperGlue: Learning Feature Matching With Graph Neural Networks",
+    "year": 2019,
+    "published": "2019",
+    "categories": [],
+    "citationCount": 3050,
+    "influentialCitationCount": 470,
+    "url": "https://arxiv.org/abs/1911.11763",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "3efd851140aa28e95221b55fcc5659eea97b172d",
+    "arxivId": "",
+    "title": "The Graph Neural Network Model",
+    "year": 2009,
+    "published": "2009",
+    "categories": [],
+    "citationCount": 10034,
+    "influentialCitationCount": 458,
+    "url": "https://www.semanticscholar.org/paper/3efd851140aa28e95221b55fcc5659eea97b172d",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "8342b592fe238f3d230e4959b06fd10153c45db1",
+    "arxivId": "2203.15556",
+    "title": "Training Compute-Optimal Large Language Models",
+    "year": 2022,
+    "published": "2022",
+    "categories": [],
+    "citationCount": 3951,
+    "influentialCitationCount": 370,
+    "url": "https://arxiv.org/abs/2203.15556",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "b8e1914c78c0b616e7d081759b1343cbfead42ad",
+    "arxivId": "1711.05225",
+    "title": "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays with Deep Learning",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 3621,
+    "influentialCitationCount": 362,
+    "url": "https://arxiv.org/abs/1711.05225",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "964bd39b546f0f6625ff3b9ef1083f797807ef2e",
+    "arxivId": "2211.05100",
+    "title": "BLOOM: A 176B-Parameter Open-Access Multilingual Language Model",
+    "year": 2022,
+    "published": "2022",
+    "categories": [],
+    "citationCount": 3070,
+    "influentialCitationCount": 286,
+    "url": "https://arxiv.org/abs/2211.05100",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "cb5b71a622aff47014d4f28a958679629a8b6363",
+    "arxivId": "2301.10226",
+    "title": "A Watermark for Large Language Models",
+    "year": 2023,
+    "published": "2023",
+    "categories": [],
+    "citationCount": 1126,
+    "influentialCitationCount": 258,
+    "url": "https://arxiv.org/abs/2301.10226",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "ea5dd6a3d8f210d05e53a7b6fa5e16f1b115f693",
+    "arxivId": "1812.08434",
+    "title": "Graph Neural Networks: A Review of Methods and Applications",
+    "year": 2018,
+    "published": "2018",
+    "categories": [],
+    "citationCount": 7530,
+    "influentialCitationCount": 253,
+    "url": "https://arxiv.org/abs/1812.08434",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "0ee0801ba010a441403f9ed666ef9bf006b3aa07",
+    "arxivId": "2006.07988",
+    "title": "Adaptive Universal Generalized PageRank Graph Neural Network",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 1118,
+    "influentialCitationCount": 253,
+    "url": "https://arxiv.org/abs/2006.07988",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "c2d40522eaa5523d67a0de5e4098e7031fdccb3d",
+    "arxivId": "1811.05868",
+    "title": "Pitfalls of Graph Neural Network Evaluation",
+    "year": 2018,
+    "published": "2018",
+    "categories": [],
+    "citationCount": 1946,
+    "influentialCitationCount": 238,
+    "url": "https://arxiv.org/abs/1811.05868",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "21d2742e38f7167354dafcf7f565d3894b31d008",
+    "arxivId": "2106.06947",
+    "title": "Graph Neural Network-Based Anomaly Detection in Multivariate Time Series",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 1627,
+    "influentialCitationCount": 204,
+    "url": "https://arxiv.org/abs/2106.06947",
+    "summary": "",
+    "terms": {},
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "75acc731bdd2b626edc74672a30da3bc51010ae8",
+    "arxivId": "1909.05858",
+    "title": "CTRL: A Conditional Transformer Language Model for Controllable Generation",
+    "year": 2019,
+    "published": "2019",
+    "categories": [],
+    "citationCount": 1504,
+    "influentialCitationCount": 189,
+    "url": "https://arxiv.org/abs/1909.05858",
+    "summary": "大規模なAI言語モデルは自然な文章を作るのが得意ですが、人間が指定した通りの話題や文体で書かせることは簡単ではありませんでした。そこで研究チームは、文章の生成を意図通りに誘導できる16億パラメータの言語モデル「CTRL」を開発しました。このモデルは、学習データの先頭に記事の種類や話題を表す「制御コード」を付与して訓練されています。利用者が執筆前に「ニュース」「Q&A」「レビュー」といった制御コードを入力することで、その形式やトーンに沿った文章を生成させることができます。これにより、AIが勝手に関係のない話題へ脱線するのを防ぎ、人間が求めるスタイルの文章を安定して生成できるようになりました。",
+    "terms": {
+      "言語モデル": "過去に入力された単語の並びから、次に来る確率が最も高い単語を予測して自然な文章を作り出すAIの仕組みです。",
+      "制御コード": "生成する文章の話題や文体、用途などをAIに指示するために、入力の最初につける特別な合図です。",
+      "Transformer": "文章の中にある離れた単語どうしの関連性を素早く効率的に計算できる、現代の言語AIの基本構造です。"
+    },
+    "formulas": [
+      {
+        "expression": "p(x) = \\prod_{i=1}^n p(x_i \\mid x_{<i}, c)",
+        "meaning": "指定された制御コード $c$ と直前までの単語列 $x_{<i}$ をもとに、次の単語 $x_i$ が出現する確率を順番に掛け合わせて全体の文章の確率を計算する式です。"
+      },
+      {
+        "expression": "\\mathcal{L} = -\\sum_{i=1}^n \\log p(x_i \\mid x_{<i}, c)",
+        "meaning": "AIが手本の文章を正しく予測できた度合いを測り、予測のズレを小さくするようにモデルを学習させるための指標（損失関数）です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "d9f5ec342df97e060b527a8bc18ae4e97401f246",
+    "arxivId": "2011.04573",
+    "title": "Parameterized Explainer for Graph Neural Network",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 903,
+    "influentialCitationCount": 189,
+    "url": "https://arxiv.org/abs/2011.04573",
+    "summary": "人と人との繋がりや分子の形などを扱うグラフニューラルネットワーク（GNN）は、なぜその予測結果を出したのかという理由を人間が知ることが難しいという課題がありました。従来の説明手法は、データ1つ1つに対して個別に原因を探していたため、計算に非常に時間がかかっていました。そこで本研究では、予測に重要な繋がり（エッジ）をまとめて見つけ出す「PGExplainer」という手法を開発しました。この手法は、グラフ全体を通して「どの繋がりが予測の決め手になったか」を一括して判定できる別のAIモデルを学習させます。その結果、従来よりも圧倒的に速く、データ全体に共通する説得力のある判断理由を取り出すことができるようになりました。",
+    "terms": {
+      "グラフニューラルネットワーク (GNN)": "点（ノード）とそれらを結ぶ線（エッジ）で表されるネットワーク構造のデータをそのまま処理できるAI技術です。",
+      "説明可能性": "AIが下した判断について、「なぜその結論に至ったのか」という理由や根拠を人間が理解できるように示す能力のことです。",
+      "部分グラフ": "巨大なネットワーク全体の中から、特定の予測に関わる重要な点と線だけを抜き出した小さなネットワークのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\max_{G_s} \\mathrm{MI}(Y, G_s) = H(Y) - H(Y \\mid G = G_s)",
+        "meaning": "AIの予測ラベル $Y$ と、説明のために選んだ小さな構造 $G_s$ の間の情報の一致度（相互情報量）を最大にすることで、予測に最も影響した部分を特定する式です。"
+      },
+      {
+        "expression": "e_{ij} \\sim \\mathrm{Bernoulli}(P_{ij})",
+        "meaning": "点 $i$ と点 $j$ の間の線が「予測の理由として重要かどうか」を、確率 $P_{ij}$ に応じて0か1で決めることを表しています。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "c7fd29fdd2e0b50a571db4f607eab138e9ecb644",
+    "arxivId": "2002.01680",
+    "title": "MAGNN: Metapath Aggregated Graph Neural Network for Heterogeneous Graph Embedding",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 1268,
+    "influentialCitationCount": 174,
+    "url": "https://arxiv.org/abs/2002.01680",
+    "summary": "現実のネットワークデータには、例えば「俳優」「映画」「監督」のように、異なる種類の要素と関係が混ざり合った「異種グラフ」が多く存在します。従来のAIモデルは、決められた道順（メタパス）をたどる際に途中の情報を取りこぼしたり、要素自体の詳細なテキストなどの特徴を活かしきれなかったりしていました。そこで著者らは、途中の全要素の情報をもれなく集約できるモデル「MAGNN」を提案しました。このモデルは、道筋に沿ってすべての関連情報を組み合わせ、さらにどの道筋が重要かを自動で判断して重み付けを行います。これにより、映画の推薦や関連する人物の分類といったタスクにおいて、予測精度が大きく向上しました。",
+    "terms": {
+      "異種グラフ": "「人」と「本」、「購入」と「執筆」のように、複数種類の要素と多様な関係性が混在している複雑なネットワークのことです。",
+      "メタパス": "「映画 $\\to$ 監督 $\\to$ 映画」のように、異なる種類の要素をどのような順番で辿るかを定義した意味のある道筋のことです。",
+      "アテンション機構": "集まったたくさんの情報の中から、現在の目的にとって特に重要な情報に高い注意（重み）を向ける仕組みです。"
+    },
+    "formulas": [
+      {
+        "expression": "P = (v_1, v_2, \\dots, v_{l+1})",
+        "meaning": "グラフ上で特定の道筋（メタパス）に沿って順番に並んだ要素（ノード）の具体的なつながりを表します。"
+      },
+      {
+        "expression": "h_v = \\sum_{P \\in \\mathcal{P}} \\beta_P h_v^P",
+        "meaning": "異なる道筋 $P$ から集めてきた特徴量 $h_v^P$ に、それぞれの重要度 $\\beta_P$ を掛け合わせて合計し、最終的な要素の特徴 $h_v$ を作る計算です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "a2b5d224895d96bfe2e384e2dcf1ebd136ac3782",
+    "arxivId": "1812.05159",
+    "title": "An Empirical Study of Example Forgetting during Deep Neural Network Learning",
+    "year": 2018,
+    "published": "2018",
+    "categories": [],
+    "citationCount": 1088,
+    "influentialCitationCount": 157,
+    "url": "https://arxiv.org/abs/1812.05159",
+    "summary": "深層学習では、AIが一度正しく答えられるようになった問題を、学習が進むにつれて再び間違えてしまう「忘却」という現象が起きることがあります。この研究では、画像認識などの学習プロセスを詳しく追跡し、正解から不正解に転落した瞬間を「忘却イベント」として数え上げました。調査の結果、AIにとって「一度覚えたら滅多に忘れないデータ」と「何度も忘れて覚え直すデータ」がはっきりと分かれていることが判明しました。さらに、滅多に忘れない簡単なデータは全体の3割以上を学習から削っても、最終的な認識精度がほとんど落ちないことがわかりました。この成果は、学習に必要なデータ量を減らして効率化するための重要な指針となりました。",
+    "terms": {
+      "忘却イベント": "AIの学習中に、前回の確認では正解できていた問題が、その後の確認で不正解に変わってしまった出来事のことです。",
+      "破滅的忘却": "新しい課題を学習したときに、過去に学習した別の課題の解き方をすっかり忘れてしまうAIの弱点のことです。",
+      "データセット削減": "学習データの中から成果に影響を与えない無駄なデータを取り除くことで、AIの学習を高速化・軽量化する手法です。"
+    },
+    "formulas": [
+      {
+        "expression": "f_i = \\sum_{t=1}^T \\mathbb{I}\\left(y_i^{(t-1)} = \\hat{y}_i^{(t-1)} \\land y_i^{(t)} \\neq \\hat{y}_i^{(t)}\\right)",
+        "meaning": "データ $i$ について、時刻 $t-1$ では正解だったのに時刻 $t$ で不正解になった回数を数え上げ、そのデータの「忘れやすさ」を算出する式です。"
+      },
+      {
+        "expression": "\\mathrm{Acc}(t) = \\frac{1}{N}\\sum_{i=1}^N \\mathbb{I}\\left(y_i = \\hat{y}_i^{(t)}\\right)",
+        "meaning": "時刻 $t$ の時点で、全データ $N$ 個のうちAIが正しく予測できた割合（正解率）を計算する標準的な式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "7456dea3a3646f2df6392773a196a5abd0d53b11",
+    "arxivId": "2101.03164",
+    "title": "E(3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 2543,
+    "influentialCitationCount": 148,
+    "url": "https://arxiv.org/abs/2101.03164",
+    "summary": "分子や材料の動きをコンピュータ上で再現するシミュレーションでは、原子同士に働く力を正確に計算する必要があります。しかし、従来のAIモデルは分子を回転させると計算結果の向きが狂ってしまいやすく、物理的な法則を完全に再現するのが困難でした。そこで研究チームは、3次元空間の回転や反転を行っても力の向きや大きさが自然に追随する性質（E(3)等変性）を組み込んだモデル「NequIP」を開発しました。このモデルは、単なる数値だけでなく向きの情報を持つ幾何学的な量を直接ニューラルネットワークで扱います。その結果、極めて少ない実験データからでも、物理法則に矛盾しない高精度な原子の力やエネルギーを計算できるようになりました。",
+    "terms": {
+      "E(3)等変性": "入力した分子を回転させたり平行移動させたりすると、AIが予測する力や向きも全く同じように正しく連動して回転・移動する幾何学的な性質のことです。",
+      "分子動力学シミュレーション": "原子や分子の間に働く力を計算し、時間とともにそれらがどのように動くかをコンピュータ上で追跡・再現する手法です。",
+      "原子間ポテンシャル": "原子と原子の位置関係によって決まるエネルギーの大きさであり、原子同士に引き合う力や反発する力がどう働くかを決定づけるものです。"
+    },
+    "formulas": [
+      {
+        "expression": "f(g \\cdot x) = g \\cdot f(x)",
+        "meaning": "入力 $x$ に回転などの幾何学的操作 $g$ を加えたときの予測値は、もとの予測値 $f(x)$ を同じように回転させたものと完全に一致するという「等変性」の定義です。"
+      },
+      {
+        "expression": "\\mathbf{F}_i = -\\nabla_{\\mathbf{r}_i} E",
+        "meaning": "分子全体のエネルギー $E$ が原子 $i$ の位置 $\\mathbf{r}_i$ によってどう変化するかを微分（勾配計算）することで、その原子にかかる力 $\\mathbf{F}_i$ を求める物理の基本法則です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "3cf5f512b30187efa088b9ee6c4e9d8fa7f937ce",
+    "arxivId": "",
+    "title": "Accurate prediction of protein structures and interactions using a 3-track neural network",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 3560,
+    "influentialCitationCount": 145,
+    "url": "https://www.semanticscholar.org/paper/3cf5f512b30187efa088b9ee6c4e9d8fa7f937ce",
+    "summary": "タンパク質は生命活動に不可欠な物質ですが、そのアミノ酸の並び順から立体の形を突き止めることは長年の難問でした。本研究では、アミノ酸の1次元の配列情報、アミノ酸同士の2次元の距離関係、そして3次元の立体座標を同時に並行して処理するAI「RoseTTAFold」を開発しました。これら3つの異なる視点からの情報をニューラルネットワーク内で常に行き来させて修正し合うことで、高精度な構造予測を可能にしました。このシステムは、単一のタンパク質だけでなく、複数のタンパク質が合体した複合体の立体構造も正確に予測できます。計算に必要な時間も大幅に短縮され、創薬や生命科学の研究を支える有力な手法となりました。",
+    "terms": {
+      "タンパク質立体構造予測": "アミノ酸が一列に並んだ配列情報だけを手がかりにして、それが自然界で折りたたまれて作る複雑な3次元の形を当てる技術です。",
+      "アミノ酸配列": "タンパク質を形作る基本部品であるアミノ酸が、どのような順番で鎖のように連結しているかを表す情報です。",
+      "タンパク質複合体": "複数の独立したタンパク質分子が互いに引き合って組み合わさり、特定の働きをする巨大な分子のかたまりのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathbf{x}_i \\in \\mathbb{R}^3",
+        "meaning": "タンパク質を構成する各部品 $i$ が、3次元空間のどの位置（X, Y, Z座標）にあるかを示しています。"
+      },
+      {
+        "expression": "\\mathbf{D}_{ij} = \\|\\mathbf{x}_i - \\mathbf{x}_j\\|_2",
+        "meaning": "部品 $i$ と部品 $j$ の立体的な位置の直線距離（ユークリッド距離）を計算し、部品同士がどれくらい離れているかを表す式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "a1f8082505c7e90b0a033e1b9da0a97d67aad66c",
+    "arxivId": "2302.01318",
+    "title": "Accelerating Large Language Model Decoding with Speculative Sampling",
+    "year": 2023,
+    "published": "2023",
+    "categories": [],
+    "citationCount": 1230,
+    "influentialCitationCount": 143,
+    "url": "https://arxiv.org/abs/2302.01318",
+    "summary": "ChatGPTのような大規模言語モデルは、単語を1つ出力するたびに巨大なAI全体を動かす必要があるため、文章の生成に時間がかかります。本研究では、この生成速度を劇的に引き上げる「推測サンプリング」というアルゴリズムを提案しました。この手法では、まず軽量で動作の速い小さなAIに数単語先まで「下書き」を一気に書かせます。その下書きが妥当かどうかを巨大な本命AIが一度の計算でまとめて検証し、合格した単語だけを採用します。この工夫により、巨大AIが単独で出力した時と数学的に全く同じ品質の文章を維持しながら、生成速度を2倍から3倍に高速化できました。",
+    "terms": {
+      "推測サンプリング": "小さなAIに先走って下書きを作らせ、大きなAIでまとめて検定することで、文章生成全体の時間を短縮する技術です。",
+      "ドラフトモデル": "本命の巨大なAIの代わりに、品質は荒削りながらも超高速で文章の下書きを生成する小型のAIのことです。",
+      "棄却サンプリング": "提案された候補をある確率に基づいて採用するか不採用にするかを振り分け、目的の確率分布通りの結果を得る統計手法です。"
+    },
+    "formulas": [
+      {
+        "expression": "\\alpha = \\min\\left(1, \\frac{p(x)}{q(x)}\\right)",
+        "meaning": "小さなAIが選んだ単語 $x$ の確率 $q(x)$ と、本命AIが計算した確率 $p(x)$ を比べ、その単語を下書きとしてそのまま採用する確率 $\\alpha$ を決める式です。"
+      },
+      {
+        "expression": "p(x) - q(x)",
+        "meaning": "小さなAIが提案した単語を却下した際に、本命AIの本来の確率分布を狂わせないよう、埋め合わせとして別の単語を選び直す基準となる確率の差分です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "7998468d99ab07bb982294d1c9b53a3bf3934fa6",
+    "arxivId": "1807.05511",
+    "title": "Object Detection With Deep Learning: A Review",
+    "year": 2018,
+    "published": "2018",
+    "categories": [],
+    "citationCount": 4915,
+    "influentialCitationCount": 136,
+    "url": "https://arxiv.org/abs/1807.05511",
+    "summary": "画像の中に「何が」「どこに」写っているかを四角い枠で囲んで特定する物体検出は、自動運転や防犯カメラなど幅広く応用されています。かつては人間が手作業で特徴の計算ルールを作っていましたが、認識の精度や速度に限界がありました。この論文は、深層学習（ディープラーニング）の登場によって大きく進化した物体検出の技術を網羅的に整理した解説論文です。検出手法を、位置の候補を探してから分類する「2段階方式」と、位置と種類を同時に予測する「1段階方式」に分類し、それぞれの強みと弱みを明らかにしました。さらに、小さすぎる物体の見落としなど、当時の課題と今後の展望についても詳しく論じています。",
+    "terms": {
+      "物体検出": "画像の中から特定の対象物（車や人間など）を見つけ出し、その種類を当てると同時に位置を枠で囲んで示す技術です。",
+      "バウンディングボックス": "検出した物体が画像のどこからどこまでに存在しているかを示す、長方形の境界枠のことです。",
+      "CNN (畳み込みニューラルネットワーク)": "画像の中にある輪郭や模様などの局所的な特徴を効率よく見つけ出すことができる、画像認識に特化したAIの構造です。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathrm{IoU} = \\frac{|A \\cap B|}{|A \\cup B|}",
+        "meaning": "AIが予測した枠 $A$ と正解の枠 $B$ が重なっている面積を、両方を合わせた全体の面積で割ることで、枠の位置の正確さを0から1で評価する指標です。"
+      },
+      {
+        "expression": "\\mathrm{mAP} = \\frac{1}{C}\\sum_{c=1}^C \\mathrm{AP}_c",
+        "meaning": "分類対象となるすべての種類 $C$ について個別に正解率を計算し、それらを平均して物体検出モデル全体の総合的な性能を表す指標です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "561269a24f2f2a06409109723a8ab93a01696efc",
+    "arxivId": "1610.02527",
+    "title": "Federated Optimization: Distributed Machine Learning for On-Device Intelligence",
+    "year": 2016,
+    "published": "2016",
+    "categories": [],
+    "citationCount": 2298,
+    "influentialCitationCount": 130,
+    "url": "https://arxiv.org/abs/1610.02527",
+    "summary": "スマートフォンなどの端末には個人の貴重なデータが蓄積されますが、プライバシー保護の観点から1台の中央サーバーに集めてAIを学習させることは困難です。そこで著者らは、データを端末の外に出さずに賢いAIを育てる「連合最適化（連合学習の基礎）」という枠組みを提唱しました。この方法では、各端末が手元にあるデータだけでAIを少しだけ賢くし、学習によって変化した設定値（パラメータ）の差分だけをサーバーに送信します。サーバーは集まった数多くの端末からの報告を平均して合体させ、改善された新しいモデルを端末に送り返します。通信回線が不安定な環境でも効率的に学習が進むよう設計されており、プライバシーを守る分散学習の標準的な考え方となりました。",
+    "terms": {
+      "連合学習": "ユーザーの手元にあるデータをサーバーに送信することなく、端末側で計算を行いパラメータだけを共有してAIを学習させる仕組みです。",
+      "分散最適化": "1台のコンピュータではなく、ネットワークで繋がった多数の機器で手分けして計算を行い、最適な答えを見つけ出す手法です。",
+      "パラメータ": "学習を通じてAIが賢くなる過程で、入力データから正しい予測を出すために内部で自動調整される数値データのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "\\min_{w} f(w) = \\sum_{k=1}^K \\frac{n_k}{n} F_k(w)",
+        "meaning": "全 $K$ 台の端末がそれぞれ持っているデータの量 $n_k$ に応じて重み付けし、すべての端末にとって総合的に最も間違いが少なくなるモデル $w$ を探す目的の式です。"
+      },
+      {
+        "expression": "w_{t+1} = \\sum_{k=1}^K \\frac{n_k}{n} w_{t+1}^k",
+        "meaning": "各端末 $k$ が手元のデータで更新した個別のパラメータ $w_{t+1}^k$ を、端末ごとのデータ数の比率に合わせて足し合わせ、中央サーバーで全体の新しいパラメータ $w_{t+1}$ を作成する式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "e3d662bbd0e5539fe22a85f3518f960595b9914e",
+    "arxivId": "",
+    "title": "Heterogeneous Graph Neural Network",
+    "year": 2019,
+    "published": "2019",
+    "categories": [],
+    "citationCount": 1712,
+    "influentialCitationCount": 129,
+    "url": "https://www.semanticscholar.org/paper/e3d662bbd0e5539fe22a85f3518f960595b9914e",
+    "summary": "ウェブ上のデータには、文字や画像といった多様な情報を持つ「ユーザー」「商品」「店舗」などが複雑に繋がり合う異種グラフが多く見られます。しかし、構造の複雑さと、要素に含まれる多様な文字や画像データを同時にうまく処理できるAIモデルは限られていました。そこで研究チームは、異なる種類の要素と属性をまとめて統合して学習できる「HetGNN」を提案しました。このモデルは、まず文字や画像などの特徴を個別に変換した上で、ランダムに繋がりをたどって周囲の仲間を集め、アテンション機構でどの繋がりを重視すべきか判断します。これにより、おすすめ商品の提示や関連ユーザーの予測といったシステムにおいて、極めて高い精度を発揮できるようになりました。",
+    "terms": {
+      "異種グラフ": "「人」「商品」「レビュー文章」のように、種類の異なる複数の要素と関係が複雑に絡み合ったネットワークのことです。",
+      "ランダムウォーク": "ネットワークの線の上をサイコロを振るようにランダムに進んでいくことで、近くにある関連要素を効率よく拾い集める手法です。",
+      "特徴量集約": "自分自身の周りに存在する近隣の要素から情報を集めて、自分自身をよりよく表す1つのまとまったデータへと合成する処理のことです。"
+    },
+    "formulas": [
+      {
+        "expression": "h_v^t = \\mathrm{LSTM}\\left(\\{x_u : u \\in \\mathcal{N}_t(v)\\}\\right)",
+        "meaning": "注目している要素 $v$ の周囲にある同じ種類 $t$ の仲間たち $\\mathcal{N}_t(v)$ から得た情報を、時系列処理で使われるLSTMという構造を使ってひとまとめに要約する式です。"
+      },
+      {
+        "expression": "\\alpha_{v, t} = \\frac{\\exp(\\mathrm{LeakyReLU}(\\mathbf{a}^\\top [h_v \\parallel h_v^t]))}{\\sum_{t'} \\exp(\\mathrm{LeakyReLU}(\\mathbf{a}^\\top [h_v \\parallel h_v^{t'}]))}",
+        "meaning": "周囲から集めた異なる種類 $t$ の情報に対して、現在のタスクにおいてどれをどれくらい重視すべきかを表す重要度（アテンションの重み）を計算する式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "0ef9ae1ce8c91ce671a211bdda792bf3752d1522",
+    "arxivId": "",
+    "title": "A Deep Learning Approach for Intrusion Detection Using Recurrent Neural Networks",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 1776,
+    "influentialCitationCount": 122,
+    "url": "https://www.semanticscholar.org/paper/0ef9ae1ce8c91ce671a211bdda792bf3752d1522",
+    "summary": "コンピュータネットワークへの不正な侵入を防ぐには、外部からの攻撃の兆候を素早く見つけ出す仕組みが必要です。この研究では、時系列データや連続したデータの処理が得意な「再帰型ニューラルネットワーク（RNN）」という技術を不正侵入検知に応用しました。通信記録の流れを順序立てて分析することで、正常なアクセスか攻撃かを高精度に見分けるモデルを作っています。実験では、正常と攻撃の二者択一だけでなく、攻撃の具体的な種類を当てる多クラス分類でも効果を検証しました。その結果、従来の仕組みに比べて高い精度で不正なアクセスを捉えられることが示されました。",
+    "terms": {
+      "侵入検知システム（IDS）": "ネットワーク上の通信を常に監視し、外部からの攻撃や不正アクセスを自動で見つけるセキュリティシステムです。",
+      "再帰型ニューラルネットワーク（RNN）": "過去の情報を記憶しながらデータを順番に処理できる、文章や時間変化などの連続データを扱うのが得意なAI技術です。",
+      "二値分類と多クラス分類": "データを「YesかNoか」の2通りに分けるのが二値分類で、「AかBかCか」のように3つ以上のグループに分けるのが多クラス分類です。"
+    },
+    "formulas": [
+      {
+        "expression": "h_t = f(W x_t + U h_{t-1} + b)",
+        "meaning": "現在の入力データと直前のステップの記憶（隠れ状態）を合わせて、現在の新しい記憶を計算するRNNの基本式です。"
+      },
+      {
+        "expression": "\\sigma(z) = \\frac{1}{1 + e^{-z}}",
+        "meaning": "計算結果を0から1の間の確率のような数値に変換するシグモイド関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "0b500aa5fcc175f07aecf26c0e8ddc4f0c6a931d",
+    "arxivId": "",
+    "title": "GLoRIA: A Multimodal Global-Local Representation Learning Framework for Label-efficient Medical Image Recognition",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 640,
+    "influentialCitationCount": 114,
+    "url": "https://www.semanticscholar.org/paper/0b500aa5fcc175f07aecf26c0e8ddc4f0c6a931d",
+    "summary": "医療現場ではレントゲンなどの画像診断の需要が高まり、医師の負担を減らすAIの開発が進められています。しかし、高精度なAIを作るには医師が画像1枚1枚に正解ラベルを手作業で付ける必要があり、莫大な費用と時間がかかります。そこで本研究では、過去の医療画像と一緒に保管されている医師の診断テキスト報告書に着目しました。画像全体と文章全体の対応関係だけでなく、画像内の病変部位と報告書内の特定の単語の細かな対応も同時にAIに学ばせます。この工夫により、手作業の正解ラベルがほとんどない状態でも、画像から病変を高精度に見分けることに成功しました。",
+    "terms": {
+      "マルチモーダル学習": "画像とテキストなど、形式が異なる複数の種類のデータを組み合わせて一緒に学習するAIの手法です。",
+      "対照学習": "意味が近いデータ同士は近くに、意味が異なるデータ同士は遠くになるように配置を調整して特徴を学ぶ学習法です。",
+      "表現学習": "AIがデータの特徴（形や意味など）を扱いやすい数値のまとまりとして自動で抽出・整理する仕組みです。"
+    },
+    "formulas": [
+      {
+        "expression": "s(u, v) = \\frac{u^\\top v}{\\|u\\| \\|v\\|}",
+        "meaning": "画像の特徴ベクトルとテキストの特徴ベクトルの向きの近さ（類似度）を測るコサイン類似度の計算式です。"
+      },
+      {
+        "expression": "\\mathcal{L}_{NCE} = -\\log \\frac{\\exp(s_{pos} / \\tau)}{\\exp(s_{pos} / \\tau) + \\sum \\exp(s_{neg} / \\tau)}",
+        "meaning": "対応する画像と文章の組み合わせの類似度を上げ、関係のない組み合わせの類似度を下げるように学習させる損失関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "b587ee7c802a5bd222a69090f59285e0dfdb29f1",
+    "arxivId": "1702.03118",
+    "title": "Sigmoid-Weighted Linear Units for Neural Network Function Approximation in Reinforcement Learning",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 2852,
+    "influentialCitationCount": 112,
+    "url": "https://arxiv.org/abs/1702.03118",
+    "summary": "ゲームやロボットの制御などを試行錯誤で学ばせる「強化学習」では、AIの頭脳としてニューラルネットワークが広く使われています。AIが複雑な物事を理解するためには、入力を変換して次の層へ送る「活性化関数」と呼ばれる計算の部品が非常に重要です。この研究では、滑らかな形状を持ち計算効率が良い「SiLU」と呼ばれる新しい活性化関数を提案しました。従来の関数と比べて、学習が途中で行き詰まりにくく、複雑な環境の状態を正確に捉えられる特性を持っています。実験では、古典的なゲームや制御問題において、既存の手法よりも素早く安定して良い行動を学習できることを実証しました。",
+    "terms": {
+      "強化学習": "AIが行動を試行錯誤し、うまくいったときにもらえる「報酬」を最大化するように行動方針を学ぶ学習方法です。",
+      "活性化関数": "ニューラルネットワークの各計算ユニットで、入力された信号を次の段階にどう伝えるかを調整するスイッチのような数式です。",
+      "関数近似器": "複雑に入り組んでいて正確な式が分からないデータや関係性を、大まかに再現・予測する仕組みのことです。"
+    },
+    "formulas": [
+      {
+        "expression": "f(x) = x \\cdot \\sigma(x)",
+        "meaning": "入力値そのものに入力値のシグモイド関数（0〜1の割合）を掛け合わせるSiLU関数の定義式です。"
+      },
+      {
+        "expression": "\\sigma(x) = \\frac{1}{1 + e^{-x}}",
+        "meaning": "入力値を0から1の範囲に変換し、滑らかなゲートの役割を果たすシグモイド関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "6827b7abcdc6f9c0f91e239b4da394251aff35bd",
+    "arxivId": "",
+    "title": "Deep convolutional neural network for the automated detection and diagnosis of seizure using EEG signals",
+    "year": 2017,
+    "published": "2017",
+    "categories": [],
+    "citationCount": 1487,
+    "influentialCitationCount": 107,
+    "url": "https://www.semanticscholar.org/paper/6827b7abcdc6f9c0f91e239b4da394251aff35bd",
+    "summary": "てんかんの発作を診断する際、脳の電気活動を記録した脳波（EEG）の波形を調べることが一般的です。しかし、長時間にわたる複雑な脳波を目視で確認する作業は、医師にとって大きな負担であり、専門性によって判断にバラつきが生じる課題がありました。そこで本研究では、画像認識などで実績のある「畳み込みニューラルネットワーク（CNN）」を用いて、脳波から発作の兆候を自動検知する仕組みを構築しました。脳波の波形データをAIが直接解析し、発作特有の異常なパターンを自動的に見つけ出します。実験の結果、高い精度で発作時の波形を自動識別でき、医療現場での診断支援ツールとしての実用性を示しました。",
+    "terms": {
+      "脳波（EEG）": "脳の神経細胞が活動するときに出る微弱な電気信号を、頭皮につけた電極から波形として記録したデータです。",
+      "畳み込みニューラルネットワーク（CNN）": "画像や波形データなどから局所的な特徴（エッジや特有の波の形など）を取り出すことが得意なAIモデルです。",
+      "自動検出": "人間が手作業で探す代わりに、プログラムやAIがデータの中から目的の現象や異常を自動で見つけ出すことです。"
+    },
+    "formulas": [
+      {
+        "expression": "y = \\text{ReLU}(W * x + b)",
+        "meaning": "脳波データにフィルターを適用（畳み込み）し、不要な負の値をゼロにして重要な特徴だけを残す計算を表します。"
+      },
+      {
+        "expression": "\\mathcal{L} = -\\sum_{i} y_i \\log(\\hat{y}_i)",
+        "meaning": "AIが予測した確率と実際の診断結果とのズレを測定し、学習で減らすべき誤差を計算するクロスエントロピー損失です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "91fb815361fdbf80ff15ce4d783a41846bd99232",
+    "arxivId": "2006.09963",
+    "title": "GCC: Graph Contrastive Coding for Graph Neural Network Pre-Training",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 1184,
+    "influentialCitationCount": 106,
+    "url": "https://arxiv.org/abs/2006.09963",
+    "summary": "SNSの友人関係や分子構造のように、点と線でつながりを表すデータを「グラフ」と呼びます。これまでのグラフ用AIは、特定のネットワーク専用に一から作られることが多く、別のネットワークに知識を再利用（転移）することが困難でした。本研究では、言語AIのように事前学習を行って汎用的な基礎力を身につけさせる枠組み「GCC」を提案しました。GCCは、特定のグラフの名前や属性に頼らず、グラフの構造や繋がりのパターンそのものを対照学習によってAIに学ばせます。この手法により、一度学習したモデルをまったく見たことがない別の分野のグラフ解析にもそのまま応用できるようになりました。",
+    "terms": {
+      "グラフニューラルネットワーク（GNN）": "人や物などの要素（ノード）と、それらの関係（エッジ）からなるネットワーク構造を直接扱えるAIです。",
+      "事前学習": "特定の目的の前に、大量の一般的なデータを使ってあらかじめ基礎的なパターンを学ばせておく手法です。",
+      "転移学習": "あるデータや課題で学んだ知識を、別の似た課題に応用して素早く高精度なモデルを作る技術です。"
+    },
+    "formulas": [
+      {
+        "expression": "\\mathcal{L} = -\\log \\frac{\\exp(q \\cdot k^+ / \\tau)}{\\exp(q \\cdot k^+ / \\tau) + \\sum_{i} \\exp(q \\cdot k^-_i / \\tau)}",
+        "meaning": "同じグラフの似た部分同士のスコアを高くし、無関係な部分とのスコアを低く抑えるためのInfoNCE損失関数です。"
+      },
+      {
+        "expression": "sim(q, k) = \\frac{q^\\top k}{\\|q\\| \\|k\\|}",
+        "meaning": "抽出したグラフ構造の特徴を表す2つの数値ベクトルの方向の一致度（類似度）を計算する式です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "14156438bafed28a626738630b5181b83ed5d79c",
+    "arxivId": "2008.08692",
+    "title": "Enhancing Graph Neural Network-based Fraud Detectors against Camouflaged Fraudsters",
+    "year": 2020,
+    "published": "2020",
+    "categories": [],
+    "citationCount": 830,
+    "influentialCitationCount": 105,
+    "url": "https://arxiv.org/abs/2008.08692",
+    "summary": "金融取引やネットレビューにおける詐欺師を見つけるため、ユーザー同士のつながりを分析するグラフAI（GNN）が活用されています。しかし、巧妙な詐欺師は正体を隠すため、普通の一般ユーザーと仲良く見せかけたり、普通の人に似せたプロフィールを作ったりする「カモフラージュ」を行います。従来のGNNは周りのつながりを無差別に信じて計算するため、こうしたカモフラージュによって騙されてしまう弱点がありました。そこで本研究では、繋がっている相手が本当に信頼できる情報源かをふるいにかける仕組みを組み込んだGNNを開発しました。実験の結果、巧妙に隠蔽工作を行う詐欺グループに対しても、騙されずに高い精度で見破ることに成功しました。",
+    "terms": {
+      "カモフラージュ行動": "詐欺師がAIの検知を逃れるために、無関係な一般ユーザーと意図的につながったり普通の行動を真似たりする偽装工作です。",
+      "近傍集約": "グラフAIにおいて、注目している点の特徴を決めるために、その周囲に直接つながっている点たちの情報を集める処理のことです。",
+      "アテンション機構": "集める情報の中から、どれが重要でどれが無視してよいものかを重み付けして賢く選択する仕組みです。"
+    },
+    "formulas": [
+      {
+        "expression": "h_v^{(l)} = \\sigma \\left( \\sum_{u \\in \\mathcal{N}(v)} \\alpha_{uv} W h_u^{(l-1)} \\right)",
+        "meaning": "周囲のつながっている相手の中から、重要度（α）に応じて必要な情報だけを選んで自分の特徴を更新する計算式です。"
+      },
+      {
+        "expression": "\\alpha_{uv} = \\frac{\\exp(e_{uv})}{\\sum_{k} \\exp(e_{uk})}",
+        "meaning": "周囲のユーザーがどれくらい信頼できそうかを比較し、全体で合計1になる割合として算出するソフトマックス関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "3dd906bc0947e56d2b7bf9530b11351bbdff2358",
+    "arxivId": "",
+    "title": "Computer Vision and Image Understanding",
+    "year": null,
+    "published": "None",
+    "categories": [],
+    "citationCount": 912,
+    "influentialCitationCount": 104,
+    "url": "https://www.semanticscholar.org/paper/3dd906bc0947e56d2b7bf9530b11351bbdff2358",
+    "summary": "本項目は特定の研究論文ではなく、コンピュータビジョンと画像理解の分野における代表的な国際学術雑誌（ジャーナル）の名称です。この学術誌では、コンピュータに人間の目のような視覚を持たせるための幅広い先端研究が発表されています。具体的には、写真から物体を検出する技術や、3次元空間の復元、人物の動作認識、画像生成技術などが扱われます。理論的な数学モデルから産業応用に至るまで、視覚情報処理に関する信頼性の高い査読付き論文が世界中から投稿されています。工学や人工知能の発展を支える中核的な情報共有プラットフォームの一つです。",
+    "terms": {
+      "コンピュータビジョン": "写真や動画などの視覚データから、人間のように状況や物体を認識・理解する技術を研究する学問分野です。",
+      "画像理解": "単に画像が何色かを見るだけでなく、そこに「誰がいて何をしているか」という文脈や意味まで解釈する技術です。",
+      "学術雑誌（ジャーナル）": "研究者が最新の研究成果を論文として投稿し、他の専門家による審査（査読）を経て定期的に発行される専門誌です。"
+    },
+    "formulas": [],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "fad8bd00bca79005f89a0b0e2aa13fddc864fe22",
+    "arxivId": "2106.01357",
+    "title": "Diffusion Schrödinger Bridge with Applications to Score-Based Generative Modeling",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 825,
+    "influentialCitationCount": 102,
+    "url": "https://arxiv.org/abs/2106.01357",
+    "summary": "画像生成AIで有名な「拡散モデル」は、画像に少しずつノイズを加えて砂嵐のような画像にし、それを逆向きに復元することで新しい画像を作り出します。しかし従来の手法では、数学的にきれいなノイズにするために何百回もの細かな変化ステップが必要で、計算に長い時間がかかっていました。この研究では、「シュレーディンガー橋」と呼ばれる、2つの状態の間を最も効率よく移動する確率的な最短経路を求める理論を応用しました。これにより、無駄な回り道をせず、少ないステップでノイズから綺麗な画像へと変換する経路を見つけられます。結果として、より自然で高品質なデータを従来よりも素早く生成できるようになりました。",
+    "terms": {
+      "拡散モデル": "データに徐々にノイズを混ぜていき、その逆のプロセス（ノイズ除去）をAIに学ばせることで新しいデータを生成する手法です。",
+      "シュレーディンガー橋": "ある分布から別の分布へ、物理的に最も無駄なエネルギーを使わずに確率的に粒子を移動させる最適な軌道を見つける数学理論です。",
+      "スコアベースモデル": "データが集まっている密度の高い方向（勾配＝スコア）をAIに学習させ、その案内に従って画像を復元していく生成手法です。"
+    },
+    "formulas": [
+      {
+        "expression": "dx_t = f(x_t, t)dt + g(t)dw_t",
+        "meaning": "時間の経過とともにデータがノイズによって少しずつ変化していく様子を記述する確率微分方程式（SDE）です。"
+      },
+      {
+        "expression": "\\nabla_x \\log p_t(x)",
+        "meaning": "データがどのように存在しているかの山（確率分布）の登り坂の方向を示すスコア関数です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "63167c30b06aa6c3d76e09065ced0412090d6c3b",
+    "arxivId": "2402.17764",
+    "title": "The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits",
+    "year": 2024,
+    "published": "2024",
+    "categories": [],
+    "citationCount": 502,
+    "influentialCitationCount": 100,
+    "url": "https://arxiv.org/abs/2402.17764",
+    "summary": "ChatGPTのような大規模言語モデル（LLM）は性能が高い一方で、巨大な計算機と膨大な電力・メモリを消費することが深刻な問題となっています。従来のモデルは1つの重みパラメータを16ビットの細かい数値で表していましたが、本研究はそれを「-1、0、1」の3つの値（1.58ビット相当）だけで表現する「BitNet b1.58」を提案しました。かけ算をほとんど行わず、単純な足し算と引き算だけで高速に計算できるため、メモリ使用量と消費電力を劇的に削減できます。さらに驚くべきことに、同じ規模の従来の16ビットモデルと同等の賢さを維持できることが確認されました。これにより、スマートフォンなどでも高性能なLLMを動かせる可能性が大きく拓かれました。",
+    "terms": {
+      "大規模言語モデル（LLM）": "膨大な文章を学習し、人間のように自然な対話や文章の要約・生成ができる巨大なAIシステムです。",
+      "量子化": "AIが持つ膨大なパラメータの数値を大まかな表現に丸めることで、データ量を減らし計算を軽くする手法です。",
+      "3値（三値化）": "数値を「-1」「0」「1」のたった3つの状態だけに制限して記録・計算する極端な軽量化技術です。"
+    },
+    "formulas": [
+      {
+        "expression": "W \\in \\{-1, 0, 1\\}",
+        "meaning": "AIの脳を構成する重みパラメータが「-1」「0」「1」の3種類しかとらないことを示しています。"
+      },
+      {
+        "expression": "\\widetilde{W} = \\text{RoundClip}\\left(\\frac{W}{\\gamma}, -1, 1\\right)",
+        "meaning": "もともとの数値を平均的な大きさ（γ）で割り、四捨五入して-1から1の3つの値のいずれかに収める計算です。"
+      }
+    ],
+    "addedDate": "2026-10-24"
+  },
+  {
+    "paperId": "76305acf2bf94e3a5677f7547098eeffb6649706",
+    "arxivId": "2106.06935",
+    "title": "Neural Bellman-Ford Networks: A General Graph Neural Network Framework for Link Prediction",
+    "year": 2021,
+    "published": "2021",
+    "categories": [],
+    "citationCount": 559,
+    "influentialCitationCount": 98,
+    "url": "https://arxiv.org/abs/2106.06935",
+    "summary": "SNSで「知り合いかもしれない人」を推薦したり、知識ネットワークで抜けている関係を埋めたりする課題を「リンク予測」と呼びます。本研究は、古くから地図の最短経路探索などで使われてきた「ベルマン・フォード法」の考え方を、最先端のグラフニューラルネットワーク（GNN）と融合させました。ある2つの点の間にある無数の「経路（通り道）」をたどりながら、関係性の強さを段階的に積み重ねて二者の関係を予測します。従来の手法が単純な足し算や掛け算で行っていた経路の計算を、柔軟なニューラルネットワークに置き換えて学習可能にしました。これにより、複雑に入り組んだネットワークであっても、未知のつながりを高精度に言い当てられるようになりました。",
+    "terms": {
+      "リンク予測": "ネットワーク構造の中で、現在つながっていない2つの要素が今後つながるか、または見えない関係があるかを予測するタスクです。",
+      "ベルマン・フォード法": "スタート地点からゴール地点までの最短ルートを、途中の経由地を1歩ずつ広げながら効率的に計算する古典的なアルゴリズムです。",
+      "知識グラフ": "世の中の知識や概念（人、場所、出来事など）を点とし、それらの関係（生まれた場所、職業など）を矢印で結んだ巨大なデータベースです。"
+    },
+    "formulas": [
+      {
+        "expression": "d(u, v) = \\min_{w} \\{ d(u, w) + \text{cost}(w, v) \\}",
+        "meaning": "地点uからvへの最短距離を、途中の経由地点wまでの距離と残りのコストの足し算で更新するベルマン・フォード法の基本原理です。"
+      },
+      {
+        "expression": "h_{(u, v)}^{(l)} = \\bigoplus_{w} \\left( h_{(u, w)}^{(l-1)} \\otimes e_{(w, v)} \\right)",
+        "meaning": "直前までの経路の記憶と新しい線の関係を組み合わせ（⊗）、それらをまとめて足し合わせる（⨁）ことで2点間の関係を表現する式です。"
       }
     ],
     "addedDate": "2026-10-24"
