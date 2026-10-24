@@ -208,7 +208,10 @@ def generate_index_html(all_papers: list[dict]) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI論文まとめ</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"></noscript>
 <style>
 :root {{
   --bg:#fff;--bg2:#f7f8fa;--fg:#1a1a1a;--fg2:#555;--fg3:#888;
@@ -437,7 +440,7 @@ body{{
       var readCheckHtml = '<div class="read-check-wrap">' +
         '<input type="checkbox" class="read-check" id="' + chkId + '"' +
         (isRead ? ' checked' : '') +
-        (pid ? ' onchange="toggleRead(\'' + pid + '\',this)"' : ' disabled') + '>' +
+        (pid ? ' data-pid="' + pid + '" onchange="toggleRead(this.dataset.pid,this)"' : ' disabled') + '>' +
         '<label class="read-check-label" for="' + chkId + '">読了済みにする</label>' +
         '</div>';
       html += '<article class="card' + (isRead ? ' is-read' : '') + '">' +
