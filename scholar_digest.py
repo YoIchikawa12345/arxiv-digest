@@ -201,6 +201,7 @@ def summarize(api_key: str, papers: list[dict]) -> list[dict]:
 def generate_index_html(all_papers: list[dict]) -> str:
     count = len(all_papers)
     updated = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
+    papers_json = json.dumps(all_papers, ensure_ascii=False).replace('</', '<\\/')
     return f"""<!doctype html>
 <html lang="ja">
 <head>
@@ -486,12 +487,8 @@ body{{
   document.getElementById('searchInput').addEventListener('input', function(e) {{
     q = e.target.value.toLowerCase().trim(); page = 1; render();
   }});
-  fetch('papers.json')
-    .then(function(r) {{ return r.json(); }})
-    .then(function(data) {{ PAPERS = data; render(); }})
-    .catch(function() {{
-      document.getElementById('cards').innerHTML = '<div class="no-results">データの読み込みに失敗しました。</div>';
-    }});
+  PAPERS = {papers_json};
+  render();
 }})();
 </script>
 </body>
