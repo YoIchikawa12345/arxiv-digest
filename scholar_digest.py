@@ -212,6 +212,8 @@ def generate_index_html(all_papers: list[dict]) -> str:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"></noscript>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
 :root {{
   --bg:#fff;--bg2:#f7f8fa;--fg:#1a1a1a;--fg2:#555;--fg3:#888;
@@ -283,10 +285,12 @@ body{{
 .card-terms dt{{font-size:12px;font-weight:700;color:var(--accent);display:inline}}
 .card-terms dd{{font-size:12px;color:var(--fg2);margin:0;display:inline}}
 .card-formulas{{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}}
-.card-formulas-label{{font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}}
-.formula-item{{margin-bottom:6px}}
-.formula-expr{{font-size:12px;font-family:monospace;color:var(--accent);font-weight:700;display:block;margin-bottom:2px}}
-.formula-meaning{{font-size:12px;color:var(--fg2)}}
+.card-formulas-label{{font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}}
+.formula-item{{margin-bottom:10px;padding:8px 10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--accent)}}
+.formula-expr{{display:block;margin-bottom:4px;overflow-x:auto;padding:2px 0}}
+.formula-expr .katex{{font-size:1.05em}}
+.formula-expr-fallback{{font-size:12px;font-family:monospace;color:var(--accent);font-weight:700}}
+.formula-meaning{{font-size:12px;color:var(--fg2);line-height:1.5}}
 .no-results{{text-align:center;padding:64px 0;color:var(--fg3)}}
 .loading{{text-align:center;padding:40px 0;color:var(--fg3)}}
 .sort-bar{{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--fg3)}}
@@ -430,7 +434,14 @@ body{{
       if (formulas.length) {{
         formulasHtml = '<div class="card-formulas"><div class="card-formulas-label">📐 数式解説</div>' +
           formulas.map(function(f) {{
-            return '<div class="formula-item"><span class="formula-expr">' + esc(f.expression||'') + '</span>' +
+            var expr = f.expression || '';
+            var rendered;
+            try {{
+              rendered = '<div class="formula-expr">' + katex.renderToString(expr, {{throwOnError: false, displayMode: true}}) + '</div>';
+            }} catch(e) {{
+              rendered = '<div class="formula-expr"><span class="formula-expr-fallback">' + esc(expr) + '</span></div>';
+            }}
+            return '<div class="formula-item">' + rendered +
               '<span class="formula-meaning">' + esc(f.meaning||'') + '</span></div>';
           }}).join('') + '</div>';
       }}
