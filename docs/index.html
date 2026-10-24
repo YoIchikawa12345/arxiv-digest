@@ -89,13 +89,25 @@ body{
   cursor:pointer;font-family:inherit;transition:background .15s,color .15s;
 }
 .sort-btn:hover,.sort-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.read-filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--fg3)}
+.read-filter-btn{
+  padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--fg2);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:background .15s,color .15s;
+}
+.read-filter-btn:hover,.read-filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.card.is-read{opacity:0.6}
+.card.is-read .card-title a{text-decoration:line-through}
+.read-check-wrap{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.read-check{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
+.read-check-label{font-size:12px;color:var(--fg3);cursor:pointer;user-select:none}
 </style>
 </head>
 <body>
 <div class="container">
   <header class="site-header">
     <h1>AI論文まとめ</h1>
-    <p>arXivの最新AI・機械学習論文の日本語要約集 &nbsp;·&nbsp; 全 30 件 &nbsp;·&nbsp; 最終更新 2026-10-24 15:28 JST</p>
+    <p>arXivの最新AI・機械学習論文の日本語要約集 &nbsp;·&nbsp; 全 0 件 &nbsp;·&nbsp; 最終更新 2026-10-24 15:47 JST</p>
   </header>
   <div class="search-wrap">
     <input type="search" id="searchInput" placeholder="タイトル・要約を検索…" autocomplete="off">
@@ -112,6 +124,12 @@ body{
     <button class="sort-btn active" onclick="setSort(this,'date')">🆕 新しい順</button>
     <button class="sort-btn" onclick="setSort(this,'cite')">📈 引用が多い順</button>
   </div>
+  <div class="read-filter-bar">
+    <span>閲覧状態:</span>
+    <button class="read-filter-btn active" onclick="setReadFilter(this,'all')">すべて</button>
+    <button class="read-filter-btn" onclick="setReadFilter(this,'read')">✅ 読了済み</button>
+    <button class="read-filter-btn" onclick="setReadFilter(this,'unread')">📄 未読</button>
+  </div>
   <div class="top-bar">
     <span id="statsText"></span>
     <div class="pagination" id="paginTop"></div>
@@ -123,7 +141,14 @@ body{
 </div>
 <script>
 (function() {
-  var PER_PAGE = 10, page = 1, cat = 'all', q = '', sortOrder = 'date', PAPERS = [];
+  var PER_PAGE = 10, page = 1, cat = 'all', q = '', sortOrder = 'date', readFilter = 'all', PAPERS = [];
+  var readPapers = (function() {
+    try { return new Set(JSON.parse(localStorage.getItem('arxiv_read') || '[]')); }
+    catch(e) { return new Set(); }
+  })();
+  function saveRead() {
+    try { localStorage.setItem('arxiv_read', JSON.stringify(Array.from(readPapers))); } catch(e) {}
+  }
   var CAT_LABELS = {'cs.AI':'AI・推論','cs.LG':'機械学習','cs.CL':'自然言語処理','cs.CV':'画像・Vision'};
   function getCat(p) {
     var c = (p.categories || [])[0];
@@ -141,6 +166,9 @@ body{
     return PAPERS.filter(function(p) {
       if (cat !== 'all' && getCat(p) !== cat) return false;
       if (q && ((p.title||'') + ' ' + (p.summary||'')).toLowerCase().indexOf(q) < 0) return false;
+      var isRead = readPapers.has(p.paperId||'');
+      if (readFilter === 'read' && !isRead) return false;
+      if (readFilter === 'unread' && isRead) return false;
       return true;
     });
   }
@@ -199,7 +227,16 @@ body{
               '<span class="formula-meaning">' + esc(f.meaning||'') + '</span></div>';
           }).join('') + '</div>';
       }
-      html += '<article class="card">' +
+      var pid = p.paperId || '';
+      var isRead = pid && readPapers.has(pid);
+      var chkId = 'chk_' + pid.replace(/[^a-zA-Z0-9]/g,'_');
+      var readCheckHtml = '<div class="read-check-wrap">' +
+        '<input type="checkbox" class="read-check" id="' + chkId + '"' +
+        (isRead ? ' checked' : '') +
+        (pid ? ' onchange="toggleRead('' + pid + '',this)"' : ' disabled') + '>' +
+        '<label class="read-check-label" for="' + chkId + '">読了済みにする</label>' +
+        '</div>';
+      html += '<article class="card' + (isRead ? ' is-read' : '') + '">' +
         '<div class="card-meta">' +
         '<span class="date">📅 ' + esc(p.published||p.year||'') + '</span>' +
         '<span class="card-cat">' + label + '</span>' +
@@ -209,6 +246,7 @@ body{
         '<p class="card-summary">' + esc(p.summary||'（要約なし）') + '</p>' +
         termsHtml +
         formulasHtml +
+        readCheckHtml +
         '</article>';
     }
     document.getElementById('cards').innerHTML = html;
@@ -218,6 +256,24 @@ body{
     document.querySelectorAll('.sort-btn').forEach(function(t) { t.classList.remove('active'); });
     btn.classList.add('active');
     sortOrder = s; page = 1; render();
+  };
+  window.setReadFilter = function(btn, f) {
+    document.querySelectorAll('.read-filter-btn').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    readFilter = f; page = 1; render();
+  };
+  window.toggleRead = function(paperId, cb) {
+    if (cb.checked) {
+      readPapers.add(paperId);
+    } else {
+      readPapers.delete(paperId);
+    }
+    saveRead();
+    var card = cb.closest('.card');
+    if (card) {
+      if (cb.checked) { card.classList.add('is-read'); } else { card.classList.remove('is-read'); }
+    }
+    if (readFilter !== 'all') { page = 1; render(); }
   };
   window.setTab = function(btn, c) {
     document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
