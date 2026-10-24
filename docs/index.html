@@ -75,15 +75,27 @@ body{
 .card-terms dl{margin:0;display:flex;flex-direction:column;gap:3px}
 .card-terms dt{font-size:12px;font-weight:700;color:var(--accent);display:inline}
 .card-terms dd{font-size:12px;color:var(--fg2);margin:0;display:inline}
+.card-formulas{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.card-formulas-label{font-size:11px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.formula-item{margin-bottom:6px}
+.formula-expr{font-size:12px;font-family:monospace;color:var(--accent);font-weight:700;display:block;margin-bottom:2px}
+.formula-meaning{font-size:12px;color:var(--fg2)}
 .no-results{text-align:center;padding:64px 0;color:var(--fg3)}
 .loading{text-align:center;padding:40px 0;color:var(--fg3)}
+.sort-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--fg3)}
+.sort-btn{
+  padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--fg2);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:background .15s,color .15s;
+}
+.sort-btn:hover,.sort-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="container">
   <header class="site-header">
     <h1>AI論文まとめ</h1>
-    <p>arXivの最新AI・機械学習論文の日本語要約集 &nbsp;·&nbsp; 全 30 件 &nbsp;·&nbsp; 最終更新 2026-10-24 08:18 JST</p>
+    <p>arXivの最新AI・機械学習論文の日本語要約集 &nbsp;·&nbsp; 全 30 件 &nbsp;·&nbsp; 最終更新 2026-10-24 15:28 JST</p>
   </header>
   <div class="search-wrap">
     <input type="search" id="searchInput" placeholder="タイトル・要約を検索…" autocomplete="off">
@@ -94,6 +106,11 @@ body{
     <button class="tab" onclick="setTab(this,'cs.LG')">📊 機械学習</button>
     <button class="tab" onclick="setTab(this,'cs.CL')">💬 自然言語処理</button>
     <button class="tab" onclick="setTab(this,'cs.CV')">🖼 画像・Vision</button>
+  </div>
+  <div class="sort-bar">
+    <span>並び替え:</span>
+    <button class="sort-btn active" onclick="setSort(this,'date')">🆕 新しい順</button>
+    <button class="sort-btn" onclick="setSort(this,'cite')">📈 引用が多い順</button>
   </div>
   <div class="top-bar">
     <span id="statsText"></span>
@@ -106,7 +123,7 @@ body{
 </div>
 <script>
 (function() {
-  var PER_PAGE = 10, page = 1, cat = 'all', q = '', PAPERS = [];
+  var PER_PAGE = 10, page = 1, cat = 'all', q = '', sortOrder = 'date', PAPERS = [];
   var CAT_LABELS = {'cs.AI':'AI・推論','cs.LG':'機械学習','cs.CL':'自然言語処理','cs.CV':'画像・Vision'};
   function getCat(p) {
     var c = (p.categories || [])[0];
@@ -127,6 +144,18 @@ body{
       return true;
     });
   }
+  function sorted(arr) {
+    var a = arr.slice();
+    if (sortOrder === 'cite') {
+      a.sort(function(x, y) { return (y.citationCount||0) - (x.citationCount||0); });
+    } else {
+      a.sort(function(x, y) {
+        var da = x.addedDate||x.published||'', db = y.addedDate||y.published||'';
+        return db > da ? 1 : db < da ? -1 : 0;
+      });
+    }
+    return a;
+  }
   function renderPagin(total, id) {
     var el = document.getElementById(id);
     var pages = Math.ceil(total / PER_PAGE);
@@ -143,7 +172,7 @@ body{
     el.innerHTML = h;
   }
   function render() {
-    var f = filtered(), total = f.length;
+    var f = sorted(filtered()), total = f.length;
     var slice = f.slice((page-1)*PER_PAGE, page*PER_PAGE);
     document.getElementById('statsText').innerHTML =
       '<strong>' + total + '</strong> 件 / 全 <strong>' + PAPERS.length + '</strong> 件';
@@ -162,6 +191,14 @@ body{
           termKeys.map(function(k) { return '<dt>' + esc(k) + '</dt><dd>: ' + esc(terms[k]) + '</dd>'; }).join('') +
           '</dl></div>';
       }
+      var formulas = p.formulas || [], formulasHtml = '';
+      if (formulas.length) {
+        formulasHtml = '<div class="card-formulas"><div class="card-formulas-label">📐 数式解説</div>' +
+          formulas.map(function(f) {
+            return '<div class="formula-item"><span class="formula-expr">' + esc(f.expression||'') + '</span>' +
+              '<span class="formula-meaning">' + esc(f.meaning||'') + '</span></div>';
+          }).join('') + '</div>';
+      }
       html += '<article class="card">' +
         '<div class="card-meta">' +
         '<span class="date">📅 ' + esc(p.published||p.year||'') + '</span>' +
@@ -171,11 +208,17 @@ body{
         '<h2 class="card-title"><a href="' + esc(p.url||'#') + '" target="_blank" rel="noopener">' + esc(p.title||'') + '</a></h2>' +
         '<p class="card-summary">' + esc(p.summary||'（要約なし）') + '</p>' +
         termsHtml +
+        formulasHtml +
         '</article>';
     }
     document.getElementById('cards').innerHTML = html;
   }
   window.go = function(n) { page = n; render(); window.scrollTo(0,0); };
+  window.setSort = function(btn, s) {
+    document.querySelectorAll('.sort-btn').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    sortOrder = s; page = 1; render();
+  };
   window.setTab = function(btn, c) {
     document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
     btn.classList.add('active');
