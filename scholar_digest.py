@@ -375,9 +375,9 @@ body{{
   }}
   function renderInline(text) {{
     if (typeof katex === 'undefined') return esc(text);
-    return String(text).split(/(\$[^$\n]+\$)/g).map(function(part) {{
+    return String(text).split(/(\$[^$]+\$)/g).map(function(part) {{
       if (part.charAt(0) === '$' && part.charAt(part.length-1) === '$') {{
-        try {{ return katex.renderToString(part.slice(1,-1), {{throwOnError: false, displayMode: false}}); }} catch(e) {{}}
+        try {{ return katex.renderToString(part.slice(1,-1), {{throwOnError: false, displayMode: false}}); }} catch(e) {{ return esc(part); }}
       }}
       return esc(part);
     }}).join('');
