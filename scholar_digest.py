@@ -44,7 +44,7 @@ def fetch_candidates(ss_api_key: str = "") -> list[dict]:
     API key があればそれを使う。なければ非認証で試みる（レート制限あり）。"""
     headers = {"x-api-key": ss_api_key} if ss_api_key else {}
     url = "https://api.semanticscholar.org/graph/v1/paper/search"
-    fields = "paperId,title,abstract,citationCount,influentialCitationCount,year,externalIds"
+    fields = "paperId,title,abstract,citationCount,influentialCitationCount,year,publicationDate,externalIds"
 
     seen = set()
     papers = []
@@ -77,7 +77,7 @@ def fetch_candidates(ss_api_key: str = "") -> list[dict]:
                         "arxivId": arxiv_id,
                         "title": p.get("title", ""),
                         "year": p.get("year", ""),
-                        "published": str(p.get("year", "")),
+                        "published": p.get("publicationDate") or str(p.get("year", "")),
                         "categories": [],
                         "citationCount": p.get("citationCount") or 0,
                         "influentialCitationCount": p.get("influentialCitationCount") or 0,
@@ -332,7 +332,7 @@ body{{
   </div>
   <div class="sort-bar">
     <span>並び替え:</span>
-    <button class="sort-btn active" onclick="setSort(this,'date')">🆕 新しい順</button>
+    <button class="sort-btn active" onclick="setSort(this,'date')">📅 投稿日順</button>
     <button class="sort-btn" onclick="setSort(this,'cite')">📈 引用が多い順</button>
   </div>
   <div class="read-filter-bar">
@@ -373,6 +373,15 @@ body{{
   function esc(s) {{
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }}
+  function renderInline(text) {{
+    if (typeof katex === 'undefined') return esc(text);
+    return String(text).split(/(\$[^$\n]+\$)/g).map(function(part) {{
+      if (part.charAt(0) === '$' && part.charAt(part.length-1) === '$') {{
+        try {{ return katex.renderToString(part.slice(1,-1), {{throwOnError: false, displayMode: false}}); }} catch(e) {{}}
+      }}
+      return esc(part);
+    }}).join('');
+  }}
   function filtered() {{
     return PAPERS.filter(function(p) {{
       if (cat !== 'all' && getCat(p) !== cat) return false;
@@ -389,7 +398,7 @@ body{{
       a.sort(function(x, y) {{ return (y.citationCount||0) - (x.citationCount||0); }});
     }} else {{
       a.sort(function(x, y) {{
-        var da = x.addedDate||x.published||'', db = y.addedDate||y.published||'';
+        var da = x.published||x.addedDate||'', db = y.published||y.addedDate||'';
         return db > da ? 1 : db < da ? -1 : 0;
       }});
     }}
@@ -442,7 +451,7 @@ body{{
               rendered = '<div class="formula-expr"><span class="formula-expr-fallback">' + esc(expr) + '</span></div>';
             }}
             return '<div class="formula-item">' + rendered +
-              '<span class="formula-meaning">' + esc(f.meaning||'') + '</span></div>';
+              '<span class="formula-meaning">' + renderInline(f.meaning||'') + '</span></div>';
           }}).join('') + '</div>';
       }}
       var pid = p.paperId || '';
@@ -605,6 +614,12 @@ def main():
             finally:
                 for p in with_abstract:
                     p.pop("abstract", None)
+
+    before = len(all_papers)
+    all_papers = [p for p in all_papers if p.get("summary")]
+    removed = before - len(all_papers)
+    if removed:
+        print(f"Excluded {removed} papers without summaries.")
 
     save_papers(all_papers)
     print(f"papers.json updated: {len(all_papers)} papers total.")
