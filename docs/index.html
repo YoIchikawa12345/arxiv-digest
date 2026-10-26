@@ -194,8 +194,10 @@ body{
       a.sort(function(x, y) { return (y.citationCount||0) - (x.citationCount||0); });
     } else {
       a.sort(function(x, y) {
-        var da = x.published||x.addedDate||'', db = y.published||y.addedDate||'';
-        return db > da ? 1 : db < da ? -1 : 0;
+        var da = x.published||'', db = y.published||'';
+        if (db !== da) return db > da ? 1 : -1;
+        var ea = x.addedDate||'', eb = y.addedDate||'';
+        return eb > ea ? 1 : eb < ea ? -1 : 0;
       });
     }
     return a;
