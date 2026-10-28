@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI論文ダイジェスト — 2026-10-28</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+:root {
+  --bg: #0f1623; --bg-card: #1a2234; --bg-section: #1e2a40;
+  --border: rgba(255,255,255,0.07); --fg: #e2e8f0;
+  --fg-muted: #7a90b8; --fg-dim: #4a5b7a;
+  --accent: #f59e0b; --accent-sub: rgba(245,158,11,0.1);
+  --green: #10b981; --green-sub: rgba(16,185,129,0.08);
+  --purple: #8b5cf6; --purple-sub: rgba(139,92,246,0.08);
+  --font-d: 'Source Serif 4', Georgia, serif;
+  --font-b: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-m: 'IBM Plex Mono', monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f7fb; --bg-card: #fff; --bg-section: #f0f4ff;
+    --border: rgba(0,0,0,0.08); --fg: #1a2035;
+    --fg-muted: #556080; --fg-dim: #9aa5bf;
+    --accent: #b45309; --accent-sub: rgba(180,83,9,0.08);
+    --green: #047857; --green-sub: rgba(4,120,87,0.07);
+    --purple: #6d28d9; --purple-sub: rgba(109,40,217,0.07);
+    color-scheme: light;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-b); font-size: 15px; line-height: 1.7;
+  margin: 0; padding: 0;
+}
+a { color: var(--accent); }
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 14px max(16px, 2vw);
+}
+.header-inner {
+  max-width: 860px; margin: 0 auto;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.header-eyebrow {
+  font-family: var(--font-m); font-size: 0.65rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent);
+}
+.header-title {
+  font-family: var(--font-d); font-size: 1.15rem; font-weight: 600; flex: 1;
+}
+.header-meta { font-family: var(--font-m); font-size: 0.72rem; color: var(--fg-muted); }
+.header-link {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--fg-muted);
+  text-decoration: none; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px;
+}
+.header-link:hover { color: var(--accent); border-color: var(--accent); }
+.main { max-width: 860px; margin: 0 auto; padding: 20px max(16px, 2vw) 64px; }
+.section-label-top {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--fg-dim);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+}
+.paper-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+}
+.card-top {
+  display: grid; grid-template-columns: 50px 1fr;
+  gap: 0 14px; padding: 18px 18px 14px;
+}
+.vote-block {
+  display: flex; flex-direction: column; align-items: center; padding-top: 4px; gap: 2px;
+}
+.vote-arrow { font-size: 0.6rem; color: var(--accent); }
+.vote-num {
+  font-family: var(--font-m); font-size: 0.95rem; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.rank { font-family: var(--font-m); font-size: 0.6rem; color: var(--fg-dim); }
+.paper-title {
+  font-family: var(--font-d); font-size: 1rem; font-weight: 600;
+  line-height: 1.4; margin: 0 0 8px; text-wrap: balance;
+}
+.paper-title a { color: var(--fg); text-decoration: none; }
+.paper-title a:hover { color: var(--accent); }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag {
+  font-family: var(--font-m); font-size: 0.63rem; padding: 2px 7px;
+  border-radius: 3px; color: #fff; letter-spacing: 0.03em;
+}
+.card-sections { padding: 0 18px 18px 82px; display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 560px) {
+  .card-top { grid-template-columns: 44px 1fr; }
+  .card-sections { padding: 0 14px 14px; }
+}
+.section-block {
+  background: var(--bg-section); border-radius: 6px;
+  border-left: 3px solid var(--accent); padding: 12px 14px;
+}
+.section-block.points { border-left-color: var(--green); }
+.section-block.terms  { border-left-color: var(--purple); }
+.section-label {
+  font-family: var(--font-m); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--fg-dim); margin-bottom: 8px;
+}
+.section-block p { margin: 0; font-size: 0.9rem; }
+.points-list {
+  margin: 0; padding-left: 1.2em;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.points-list li { font-size: 0.88rem; }
+.terms-grid { display: flex; flex-direction: column; gap: 10px; }
+.term-item { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: baseline; }
+.term-word {
+  font-family: var(--font-m); font-size: 0.78rem; font-weight: 600;
+  color: var(--purple); white-space: nowrap; padding-top: 1px;
+}
+.term-desc { font-size: 0.85rem; color: var(--fg-muted); }
+.card-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-link {
+  font-family: var(--font-m); font-size: 0.7rem; color: var(--accent);
+  text-decoration: none; border: 1px solid var(--accent);
+  padding: 5px 12px; border-radius: 4px; opacity: 0.85; transition: opacity 0.15s;
+}
+.btn-link:hover { opacity: 1; }
+.btn-gh { color: var(--fg-muted); border-color: var(--border); }
+.btn-gh:hover { color: var(--fg); border-color: rgba(255,255,255,0.25); }
+.footer {
+  text-align: center; font-family: var(--font-m); font-size: 0.72rem;
+  color: var(--fg-dim); padding: 24px 16px 40px;
+}
+.footer a { color: var(--fg-muted); }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div style="flex:1;min-width:180px">
+      <div class="header-eyebrow">ArXiv Trend Digest</div>
+      <div class="header-title">今日のAI論文ダイジェスト</div>
+    </div>
+    <span class="header-meta">2026-10-28</span>
+    <a class="header-link" href="https://canon-so8.github.io/news-claw/arxiv/2026/10/28/11-59-neta-trend-hf/" target="_blank">NewsClaw ↗</a>
+  </div>
+</header>
+<main class="main">
+  <p class="section-label-top">トップ10論文 — upvote 順 — 概要・ポイント・用語解説付き</p>
+  
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#1</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.21114" target="_blank">Spectral-Spatial Interpretation</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>農業や衛星画像などで使われる多波長（マルチスペクトル）画像では、AIが『画像のどの場所』だけでなく『どの光の波長（赤外線など）』を見て判断したかを把握することが障害調査などで不可欠です。しかし、従来の可視化ツールは場所か波長のどちらか一方しか分析できず、特定箇所の詳細な原因究明が困難でした。本研究はゲーム理論の公平な貢献度計算（シャープレイ値）を応用し、画像の位置と波長を掛け合わせた二次元マトリクスでAIの判断理由を完全分解する手法『SSI』を提案しました。これにより、特定ピクセルにおける各波長の寄与度が正確に特定できるようになりました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>画像上の位置（2Dグリッド）と波長チャンネルを組み合わせたプレイヤーモデルを定義し、局所的な貢献度を数学的に算出</li>
+<li>単一のヒートマップ出力にとどまらず、全位置×全チャンネルの寄与度マトリクスを完全復元可能</li>
+<li>ゲーム理論のシャープレイ値の公平性条件を満たし、局所的なチャンネル貢献度の総和が位置全体の寄与度と厳密に一致</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">マルチスペクトル画像</span><span class="term-desc">通常のRGB（赤緑青）の3色だけでなく、赤外線や紫外線など多数の光の波長帯を記録した画像データのことです。</span></div><div class="term-item"><span class="term-word">シャープレイ値（Shapley value）</span><span class="term-desc">協力ゲーム理論で、チームの総成果に対して各メンバーがどれだけ貢献したかを公平に配分する計算手法です。</span></div><div class="term-item"><span class="term-word">アトリビューション（帰属度）</span><span class="term-desc">AIが下した判定結果（例:『ここは異常』）に対して、入力データのどの部分がどれくらい影響を与えたかを示す数値です。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.21114" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#2</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.28402" target="_blank">StreamEval: Evaluating Interactive Streaming Video Generation Models</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>ユーザーのリアルタイムな指示に応じて動画を逐次ストリーミング生成するAIが登場していますが、その応答性や指示遵守力を正しくテストする標準的な試験環境が存在していませんでした。そこで著者らは、対話アバターやワールド生成など5種類のタスクを含む初の対話型ストリーミング動画評価ベンチマーク『StreamEval』を開発しました。15〜300秒の検証ケース300件と10種類の評価指標を用い、計37種類の最新モデルを網羅的にテストしました。その結果、見た目の画質が良いモデルであっても、指示を正しく維持し続ける能力（状態の一貫性）は必ずしも伴っていないという弱点が浮き彫りになりました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>15秒から最長300秒に及ぶ300件のシナリオケースを用意し、動画生成AIの耐久力と追従性をテスト</li>
+<li>タスク実行力、状態一貫性、映像忠実度、音声同期など10個のメトリクスで多角的にスコア化</li>
+<li>37種類の既存モデルを評価した結果、高画質モデルでも状態維持に失敗しやすいトレードオフを実証</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">ベンチマーク</span><span class="term-desc">システムの性能を一律の条件下で比較・測定するための標準テストスイートのことです。</span></div><div class="term-item"><span class="term-word">ストリーミング生成</span><span class="term-desc">動画ファイル全体が出来上がるのを待つのではなく、生成された先頭フレームから順次リアルタイムに配信・表示する仕組みです。</span></div><div class="term-item"><span class="term-word">状態一貫性（State Consistency）</span><span class="term-desc">動画が進んでも、キャラクターの服装や背景の配置などの設定が途中で破綻したり急変したりせず保たれている度合いのことです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.28402" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#3</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.33568" target="_blank">Trajectory2Gym: Decision-Grounded Compositional Interaction Synthesis for Tool-Use Agents</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>外部APIやツールを操作するAIエージェントを賢く育てるには高品質な実行履歴が必要ですが、成功した操作ログであっても『偶然うまくいっただけの行動』や『後知恵による不自然な決定』が混ざり、学習のノイズになっていました。この課題を解決するため、本論文は有効な学習データだけを合成・選別するフレームワーク『Trajectory2Gym』を提案しました。AIがその時点で画面やログから見えていた情報に真に基づいているか（決定の根拠性）を厳格に検証し、意味のある複雑な依存関係を持つ操作だけを抽出します。これにより、AIがツールの前提条件や文脈を正しく理解して動作する学習を効率化しました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>『決定の根拠性（Decision Grounding）』を導入し、実行時点で視認できない情報に依存した不正な行動をデータから排除</li>
+<li>単なる成功ログの再利用と比べ、ステップ間の複雑な依存関係（Compositional Coverage）を網羅する合成環境を構築</li>
+<li>親構造で正規化したファインチューニング手法により、一連の操作単位の重要度を保ったまま学習効率を向上</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">エージェント軌跡（Trajectory）</span><span class="term-desc">AIが目的を達成するために行った『状況観察 → 判断 → API呼び出し』といった一連の実行履歴・操作ログのことです。</span></div><div class="term-item"><span class="term-word">教師ありファインチューニング（SFT）</span><span class="term-desc">『この入力にはこの行動を返す』という正解ログの手本データを与えて、既存モデルを追加学習させる手法です。</span></div><div class="term-item"><span class="term-word">ツールユース（Tool-Use）</span><span class="term-desc">AIが計算機、検索エンジン、外部DBなどのAPIを自律的に呼び出して回答を作成する能力のことです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.33568" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#4</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.31668" target="_blank">Reading, Writing, Sharing, and Interacting with the World through Video</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>動画を解析するAIと新しく作り出すAIは急速に進化していますが、背後にある物理法則や時間変化を正しく掴む『世界モデル』としての視点から全体を俯瞰した体系化が不足していました。本サーベイ論文は、動画を『現実世界の部分的で粗いスナップショットの連続』と定義し、最新の動画AI技術を統一フレームワークで整理しました。論文では動画処理を『読む（理解）』『書く（生成）』『分かち合う（統合）』『対話する（行動と更新）』という4つの基本操作に分類しています。この視点により、単に動画の見た目がスムーズであることと、モデルが世界の物理状態を一貫して理解していることの違いを明確にしました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>最新の動画生成モデルと動画理解モデルを『世界モデル』という1つの統一的な軸で整理</li>
+<li>動画に対する操作を『Reading・Writing・Sharing・Interacting』の4つのプリミティブに体系化</li>
+<li>単なる映像フレーム間の滑らかさと、背後にある『世界の物理状態の一貫性』を明確に区別して課題を抽出</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">世界モデル（World Model）</span><span class="term-desc">システムが周囲の環境や物理法則のルールを内部にシミュレータとして保持し、『こう動いたら次はどうなるか』を脳内で予測できるモデルです。</span></div><div class="term-item"><span class="term-word">潜在表現（Latent State）</span><span class="term-desc">画像そのもののピクセルではなく、AIが物体の位置や意味を効率的に扱うために圧縮した内部パラメータのことです。</span></div><div class="term-item"><span class="term-word">時間的整合性（Temporal Coherence）</span><span class="term-desc">前後のフレーム間で物体の形状や位置がチラついたり急に消えたりせず、滑らかに繋がっている性質のことです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.31668" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#5</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.32285" target="_blank">Trial by Trace: Benchmarking AI Agent Harnesses for Reliability and Failure Attribution</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>業務でAIエージェントを活用する際、トラブルの原因がLLMそのものの知能不足なのか、それを取り囲む実行基盤（ハーネス）のバグなのか切り分けられない問題がありました。そこで本研究は、API連携、ログ収集、エラー処理などエージェント周辺システム自体の信頼性を測定するベンチマーク『TraceTrial-Bench』を構築しました。文脈管理や可観測性など7領域にわたる95件のエキスパート級タスクを用意し、実行ログ（トレース）を詳細に解析して失敗原因を特定できるようにしました。これにより、モデル本体の性能差に惑わされず、実行フレームワーク単体の堅牢性を比較可能にしました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>エージェントの基盤機能を7要素（文脈・実行・ガバナンス・ライフサイクル・可観測性・ツール・検証）に体系化</li>
+<li>実際のシステム挙動に基づく95件の高難度タスクを構築し、状態ベースで合否を厳密判定</li>
+<li>モデル自体の知能とハーネス（実行基盤）の信頼性を分離して測定する2層評価アーキテクチャを提案</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">ハーネス（Harness）</span><span class="term-desc">LLMの周りでAPIリクエストを中継したり、セッション管理やエラー時の再試行を担う実行エンジン（Webフレームワークのような外枠）のことです。</span></div><div class="term-item"><span class="term-word">トレーシング（Tracing）</span><span class="term-desc">分散システムにおける分散トレースのように、AIエージェントの一連の処理ステップやAPI呼び出しログを追跡・記録することです。</span></div><div class="term-item"><span class="term-word">可観測性（Observability）</span><span class="term-desc">システムの外部出力（メトリクスやログ）から、内部で何が起きているのかを推測・把握できる度合いのことです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.32285" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#6</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.31329" target="_blank">WeVisOne-VL: Unified Visual Perception from Objects to Pixels</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>従来の画像認識AIは『大まかな位置を四角い枠で囲む』ことは得意でしたが、複雑な境界線をピクセル単位で正確に切り抜くような精密な作業を同一モデルで両立するのは困難でした。騰訊（WeChat）の研究チームは、物体検出から精密な切り抜き（マット処理）までを1台でこなす視覚言語モデル『WeVisOne-VL』を開発しました。言語モデルの出力に特殊なトークンと軽量なピクセル専用デコーダを組み込むことで、点・矩形・マスクなどユーザーが指定した自由な粒度で出力できます。30以上の主要ベンチマークでトップ性能を記録し、画像に存在しない物体を指定された際の誤検知を拒否する堅牢性も備えています。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>物体検出からピクセル単位の背景切り抜き（Matting）まで、複数タスクを1つの統合モデルで完結</li>
+<li>3段階のカリキュラム学習（SFT）とマルチタスク強化学習（RL）を組み合わせ、認識精度を最大化</li>
+<li>30を超える主要ベンチマークテストにおいて最高水準のスコアを達成し、対象不在時の誤認識拒否も実現</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">VLM（視覚言語モデル）</span><span class="term-desc">テキストだけでなく画像も同時に入力し、画像の内容を理解して言葉で説明したり位置を答えたりできるAIです。</span></div><div class="term-item"><span class="term-word">セグメンテーション（Segmentation）</span><span class="term-desc">画像内の物体を四角い枠ではなく、輪郭に沿ってピクセル単位で塗り分けて特定する技術です。</span></div><div class="term-item"><span class="term-word">アルファマット（Alpha Matte）</span><span class="term-desc">髪の毛やガラスのような半透明・微細な境界線を、0〜1の透過度情報として精密に切り抜く技術です。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.31329" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#7</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.34662" target="_blank">StreamVibe: Proactive Video Agents for Evolving User Intent</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>ユーザーの画面操作などをリアルタイムに支援するAIでは、『次にどこをクリックすればいい？』といった言葉にされない潜在的な意図を汲み取ることが不可欠ですが、従来のAIは明示的な指示を待つ受動的なものばかりでした。この課題を克服するため、本研究は画面のストリーミング動画からユーザーの目的を先回りして察知するプロアクティブモデル『StreamVibe-VL』を開発しました。評価のために明示的・暗示的・動的な意図を含む4,100件のテスト用データセット『StreamVibe-Bench』を新たに構築しています。ユーザーの行動変化に合わせて内部の状態を柔軟に更新し続ける仕組みを備え、実用的な自律アシスタントを実現しました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>ストリーミング動画から『言葉になっていないユーザーの意図』をリアルタイムに推測する先回り対話を実現</li>
+<li>意図の推論性能を測るため、8.5万件の訓練データと4,100件の評価データからなるベンチマークを公開</li>
+<li>変化し続けるユーザーのコンテキストを永続ステートとして柔軟に保持・更新する管理基盤を導入</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">プロアクティブ（Proactive）</span><span class="term-desc">ユーザーから指示されるのを待つ（リアクティブ）のではなく、状況を観察してAI側から自発的に提案や支援を行う挙動のことです。</span></div><div class="term-item"><span class="term-word">潜在的意図（Implicit Intent）</span><span class="term-desc">『検索ボタンを押したい』のように言葉で明かされておらず、マウスの迷いなどの行動ログから推測すべき真の目的のことです。</span></div><div class="term-item"><span class="term-word">ステートフル（Stateful）</span><span class="term-desc">過去のリクエストや一連の文脈履歴をメモリ等に保持し、直前の状況を踏まえて次の処理を行う仕組みのことです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.34662" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#8</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.30926" target="_blank">Making MLLM Latents Matter: Factor-Aware Predictive Learning for Cinematic Video Generation</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>映画のような本格的な動画をAIで作るには、粗い指示から自然な時間の流れを予測し、キャラやカメラの動きを個別に細かくコントロールする技術が必要です。言語と画像を深く理解する巨大モデル（MLLM）の知識を使えば実現できそうですが、従来の動画生成モデル（DiT）はMLLMの情報をうまく受け取れず素通りしてしまう構造上の欠点がありました。そこで本研究は、MLLMの内部データ（潜在変数）を動画生成モデルに確実に反映させる学習手法『FAPL』を提案しました。キャラクター、背景、カメラワークなどの要素を分離して制御できるようにした結果、指示に極めて忠実でリッチな動画生成が可能になりました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>生成器（DiT）がMLLMの潜在表現を無視できないよう、接続層を固定して学習させる事前接地手法を導入</li>
+<li>キャラ・背景・アクション・カメラの各要素を分離制御するため、特定要素のみを変化させたペア動画データで学習</li>
+<li>まばらな指示情報からでも破綻のない滑らかな時系列変化を補完・予測する能力を向上</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">潜在変数（Latents）</span><span class="term-desc">AIが膨大な画像や動画の特徴（構図、色彩、意味など）をギュッと凝縮した、内部的な数値データの塊のことです。</span></div><div class="term-item"><span class="term-word">DiT（Diffusion Transformer）</span><span class="term-desc">ノイズから徐々に高品質な画像や動画を削り出す『拡散モデル』に、ChatGPT等で使われるTransformer構造を合体させた生成基盤です。</span></div><div class="term-item"><span class="term-word">要因分離（Factor-Aware）</span><span class="term-desc">『人物の服』だけを変えたいときに、背景やカメラのアングルまで変わってしまわないよう、構成要素をバラバラに独立して制御することです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.30926" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#9</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.24738" target="_blank">Editing Images into Reusable Layers via Compositional Edit-Prior Distillation</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>画像編集AIを使って写真の一部を変更しても、出力される画像はすべてのパーツが1枚に結合された平坦なファイルであるため、後からそのパーツだけ微調整したり再利用することができませんでした。本研究は、自然言語の指示で画像を編集しながら、同時に透明度情報（アルファ値）を持った独立レイヤーとして出力できるAI『LayerEditor』を開発しました。編集後のキャンバス全体と各RGBAレイヤーを同一のトークン列として同時に扱う新手法を採用しています。さらに既存の高品質な画像編集モデルの知識をレイヤー生成へと蒸留（転移）することで、デザインソフトのように部品単位で再編集可能な画像出力を実現しました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>1回の編集指示から、1枚の完成画像だけでなく透明度付きのRGBA独立レイヤーを同時に出力可能</li>
+<li>キャンバス全体と複数のレイヤー構造を単一のトークン列として統合処理するモデリング手法を開発</li>
+<li>学習済みモデルの編集ノウハウを個別レイヤーの合成処理にも引き継ぐ蒸留（Distillation）技術を適用</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">RGBA</span><span class="term-desc">通常の光の三原色RGB（赤・緑・青）に、透明度を表すA（Alpha: アルファチャンネル）を加えた画像データ形式です。</span></div><div class="term-item"><span class="term-word">蒸留（Distillation）</span><span class="term-desc">賢い巨大な親モデルが持っている知識や判断基準を、別の構造を持つモデルに効率よく教えて移植する学習テクニックです。</span></div><div class="term-item"><span class="term-word">インコンテキスト（In-Context）</span><span class="term-desc">複数の関連データ（全体の絵と個別レイヤー）を1つの入力データ列に並べて渡し、相互の関係性をAIに一度に把握させる手法です。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.24738" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+
+<article class="paper-card">
+  <div class="card-top">
+    <div class="vote-block">
+      <span class="vote-arrow">▲</span>
+      <span class="vote-num">0</span>
+      <span class="rank">#10</span>
+    </div>
+    <div>
+      <h2 class="paper-title"><a href="https://arxiv.org/abs/2610.34467" target="_blank">DynaFlow: Learning Free-Form Multi-Agent Orchestration</a></h2>
+      <div class="tags"></div>
+    </div>
+  </div>
+  <div class="card-sections">
+    <div class="section-block">
+      <div class="section-label">📝 概要</div>
+      <p>複雑な課題を複数のAIエージェントで分担処理する際、事前に人間が組んだ『Aを実行した後にBを実行する』といった固定パイプラインでは、予期せぬタスクの変化に柔軟に対応できませんでした。そこで著者らは、親エージェントがタスクに応じて子エージェントたちの連携コード（ワークフロー）をその場でプログラムとして自動生成するフレームワーク『DynaFlow』を発表しました。直列・並列の実行制御やデータの受け渡し、検証処理をコードとして組み立て、実行エラーログを見ながら動的にフローを修正します。数学的推論など6つのベンチマークで検証し、従来の固定パイプラインを大きく上回る柔軟性と適応力を証明しました。</p>
+    </div>
+    <div class="section-block points"><div class="section-label">🎯 論文のポイント</div><ul class="points-list"><li>親AIが子AIをオーケストレーションする実行可能なプログラム（コード）をタスクごとに動的合成</li>
+<li>実行途中のログやエラー（トレース）を次の意思決定にフィードバックし、推論の進捗に応じてフローを自己修復</li>
+<li>子AIのモデルは固定したまま親AIのみを学習させ、オーケストレーション能力と実作業能力をきれいに分離</li></ul></div>
+    <div class="section-block terms"><div class="section-label">📚 用語解説</div><div class="terms-grid"><div class="term-item"><span class="term-word">オーケストレーション（Orchestration）</span><span class="term-desc">コンテナオーケストレーションのように、複数の独立したプログラムやAIをまとめ上げ、協調して動くよう全体を指揮・統制することです。</span></div><div class="term-item"><span class="term-word">マルチエージェント（Multi-Agent）</span><span class="term-desc">1つの巨大なAIに全てをやらせるのではなく、『リサーチャー役』『コーダー役』『レビュー役』などの役割分担を持った複数のAIを連携させる仕組みです。</span></div><div class="term-item"><span class="term-word">ワークフロー合成（Workflow Synthesis）</span><span class="term-desc">決められた設定ファイルを読み込むのではなく、状況に合わせて処理フロー（条件分岐や並列処理のコード）をその場で自動生成することです。</span></div></div></div>
+    <div class="card-links"><a class="btn-link" href="https://arxiv.org/abs/2610.34467" target="_blank">📄 arxiv</a></div>
+  </div>
+</article>
+</main>
+<footer class="footer">
+  <p>ソース: <a href="https://canon-so8.github.io/news-claw/arxiv/2026/10/28/11-59-neta-trend-hf/" target="_blank">NewsClaw</a> / 生成: Claude (gemini-3.8-flash)</p>
+</footer>
+</body>
+</html>
